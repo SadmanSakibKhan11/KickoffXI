@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}{{ config.APP_NAME }} — My Squad{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<section class="bg-gradient-to-b from-navy-50 to-white dark:from-navy-900 dark:to-navy-950 py-16 sm:py-20">
+    <div class="container-main">
+        <div class="max-w-2xl animate-fade-in-up">
+            <span class="text-gold-500 text-sm font-semibold uppercase tracking-widest">Dashboard</span>
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-navy-900 dark:text-white mt-2">My Squad</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-3 text-lg">Build your dream World Cup squad</p>
+        </div>
+    </div>
+</section>
+
+<div class="container-main pb-20">
+
+    <!-- Profile Card -->
+    <div class="scroll-animate mb-12">
+        <div class="flex items-center gap-5 p-6 rounded-2xl bg-white dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50">
+            <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-gold-500 to-gold-400 flex items-center justify-center flex-shrink-0">
+                <span class="text-2xl font-black text-navy-950">DS</span>
+            </div>
+            <div>
+                <h2 class="text-xl font-bold text-navy-900 dark:text-white">Demo Scout</h2>
+                <p class="text-sm text-gray-400 dark:text-gray-500 mt-0.5">World Cup 2026 Enthusiast</p>
+            </div>
+            <div class="ml-auto hidden sm:flex items-center gap-3">
+                <div class="text-center px-4">
+                    <p class="text-2xl font-extrabold text-navy-900 dark:text-white">0</p>
+                    <p class="text-xs text-gray-400 uppercase tracking-wider mt-0.5">Favorites</p>
+                </div>
+                <div class="w-px h-10 bg-gray-200 dark:bg-navy-800"></div>
+                <div class="text-center px-4">
+                    <p class="text-2xl font-extrabold text-navy-900 dark:text-white">0</p>
+                    <p class="text-xs text-gray-400 uppercase tracking-wider mt-0.5">Viewed</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Favorite XI Section -->
+    <div class="scroll-animate mb-12">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="text-2xl font-extrabold text-navy-900 dark:text-white">Favorite XI</h2>
+                <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Select your dream starting lineup</p>
+            </div>
+            <span class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider bg-gray-100 dark:bg-navy-900 px-3 py-1.5 rounded-lg">4-3-3</span>
+        </div>
+
+        <!-- Formation Layout (4-3-3) -->
+        <div class="bg-gradient-to-b from-green-900/90 to-green-800/90 dark:from-green-950 dark:to-green-900 rounded-3xl p-6 sm:p-10 relative overflow-hidden border border-green-700/30">
+            <!-- Field Lines -->
+            <div class="absolute inset-0 opacity-10">
+                <div class="absolute top-1/2 left-0 right-0 h-px bg-white"></div>
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full border border-white"></div>
+            </div>
+
+            <div class="relative z-10 space-y-8 sm:space-y-10">
+                <!-- Forward Line (3) -->
+                <div class="flex justify-center gap-4 sm:gap-8">
+                    {% for i in range(3) %}
+                    <div class="formation-slot w-20 sm:w-24 text-center">
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full bg-white/10 backdrop-blur-sm border-2 border-dashed border-white/30 flex items-center justify-center hover:border-gold-400 hover:bg-gold-500/10 transition-all cursor-pointer">
+                            <svg class="w-6 h-6 text-white/30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                            </svg>
+                        </div>
+                        <p class="text-white/50 text-xs mt-2 font-medium">
+                            {% if loop.index == 1 %}LW{% elif loop.index == 2 %}ST{% else %}RW{% endif %}
+                        </p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Midfield Line (3) -->
+                <div class="flex justify-center gap-4 sm:gap-8">
+                    {% for i in range(3) %}
+                    <div class="formation-slot w-20 sm:w-24 text-center">
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full bg-white/10 backdrop-blur-sm border-2 border-dashed border-white/30 flex items-center justify-center hover:border-gold-400 hover:bg-gold-500/10 transition-all cursor-pointer">
+                            <svg class="w-6 h-6 text-white/30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                            </svg>
+                        </div>
+                        <p class="text-white/50 text-xs mt-2 font-medium">
+                            {% if loop.index == 1 %}LCM{% elif loop.index == 2 %}CM{% else %}RCM{% endif %}
+                        </p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Defense Line (4) -->
+                <div class="flex justify-center gap-3 sm:gap-6">
+                    {% for i in range(4) %}
+                    <div class="formation-slot w-20 sm:w-24 text-center">
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full bg-white/10 backdrop-blur-sm border-2 border-dashed border-white/30 flex items-center justify-center hover:border-gold-400 hover:bg-gold-500/10 transition-all cursor-pointer">
+                            <svg class="w-6 h-6 text-white/30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                            </svg>
+                        </div>
+                        <p class="text-white/50 text-xs mt-2 font-medium">
+                            {% if loop.index == 1 %}LB{% elif loop.index == 2 %}LCB{% elif loop.index == 3 %}RCB{% else %}RB{% endif %}
+                        </p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Goalkeeper -->
+                <div class="flex justify-center">
+                    <div class="formation-slot w-20 sm:w-24 text-center">
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full bg-gold-500/10 backdrop-blur-sm border-2 border-dashed border-gold-500/40 flex items-center justify-center hover:border-gold-400 hover:bg-gold-500/20 transition-all cursor-pointer">
+                            <svg class="w-6 h-6 text-gold-400/50" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                            </svg>
+                        </div>
+                        <p class="text-gold-400/50 text-xs mt-2 font-medium">GK</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bench Players -->
+    <div class="scroll-animate mb-12">
+        <h2 class="text-2xl font-extrabold text-navy-900 dark:text-white mb-2">Bench</h2>
+        <p class="text-sm text-gray-400 dark:text-gray-500 mb-6">7 substitute players</p>
+
+        <div class="grid grid-cols-4 sm:grid-cols-7 gap-3 sm:gap-4">
+            {% for i in range(7) %}
+            <div class="formation-slot text-center">
+                <div class="w-full aspect-square rounded-2xl bg-gray-50 dark:bg-navy-900 border-2 border-dashed border-gray-200 dark:border-navy-800 flex items-center justify-center hover:border-gold-500/40 hover:bg-gold-50 dark:hover:bg-navy-800 transition-all cursor-pointer">
+                    <svg class="w-6 h-6 text-gray-300 dark:text-navy-700" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                    </svg>
+                </div>
+                <p class="text-gray-300 dark:text-navy-700 text-xs mt-2 font-medium">Sub {{ i + 1 }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recently Viewed -->
+    <div class="scroll-animate mb-12">
+        <h2 class="text-2xl font-extrabold text-navy-900 dark:text-white mb-2">Recently Viewed</h2>
+        <p class="text-sm text-gray-400 dark:text-gray-500 mb-6">Players you've looked at recently</p>
+
+        <div class="p-10 rounded-2xl bg-gray-50 dark:bg-navy-900/50 border border-gray-200/50 dark:border-navy-800/50 text-center">
+            <svg class="w-12 h-12 text-gray-300 dark:text-navy-700 mx-auto" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+            </svg>
+            <p class="text-gray-400 dark:text-gray-500 mt-3">No recently viewed players</p>
+            <a href="/players" class="inline-block mt-4 text-sm font-semibold text-gold-600 dark:text-gold-400 hover:text-gold-500 transition-colors">Browse Players →</a>
+        </div>
+    </div>
+
+    <!-- Favorite Players -->
+    <div class="scroll-animate">
+        <h2 class="text-2xl font-extrabold text-navy-900 dark:text-white mb-2">Favorite Players</h2>
+        <p class="text-sm text-gray-400 dark:text-gray-500 mb-6">Players you've saved to your favorites</p>
+
+        <div class="p-10 rounded-2xl bg-gray-50 dark:bg-navy-900/50 border border-gray-200/50 dark:border-navy-800/50 text-center">
+            <svg class="w-12 h-12 text-gray-300 dark:text-navy-700 mx-auto" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 0 1 6.364 0L12 7.636l1.318-1.318a4.5 4.5 0 1 1 6.364 6.364l-7.682 7.682-7.682-7.682a4.5 4.5 0 0 1 0-6.364z"/>
+            </svg>
+            <p class="text-gray-400 dark:text-gray-500 mt-3">No favorite players yet</p>
+            <a href="/players" class="inline-block mt-4 text-sm font-semibold text-gold-600 dark:text-gold-400 hover:text-gold-500 transition-colors">Discover Players →</a>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

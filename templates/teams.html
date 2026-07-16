@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}{{ config.APP_NAME }} — Teams{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<section class="bg-gradient-to-b from-navy-50 to-white dark:from-navy-900 dark:to-navy-950 py-16 sm:py-20">
+    <div class="container-main">
+        <div class="max-w-2xl animate-fade-in-up">
+            <span class="text-gold-500 text-sm font-semibold uppercase tracking-widest">Nations</span>
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-navy-900 dark:text-white mt-2">Participating Teams</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-3 text-lg">{{ teams|length }} nations competing for the World Cup</p>
+        </div>
+    </div>
+</section>
+
+<!-- Teams Grid -->
+<section class="container-main py-12 pb-20">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6">
+        {% for team in teams %}
+        <a href="/teams/{{ team.nationality }}" class="scroll-animate group">
+            <div class="text-center p-8 sm:p-10 rounded-2xl bg-white dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50 hover:border-gold-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-navy-900/5 dark:hover:shadow-gold-500/5 hover:-translate-y-1">
+                <span class="text-5xl sm:text-6xl block">{{ team.flag }}</span>
+                <h3 class="font-bold text-navy-900 dark:text-white mt-4 text-lg">{{ team.nationality }}</h3>
+                <p class="text-sm text-gray-400 dark:text-gray-500 mt-1.5">{{ team.count }} player{{ 's' if team.count != 1 }}</p>
+                <div class="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-gold-600 dark:text-gold-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                    View Squad
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                    </svg>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+{% endblock %}

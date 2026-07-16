@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{{ config.APP_DESCRIPTION }}">
+
+    <title>{% block title %}{{ config.APP_NAME }}{% endblock %}</title>
+
+    <!-- Google Fonts — Inter for clean, modern typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        /**
+         * Tailwind Configuration
+         * Custom color palette: FIFA World Cup 2026 design language.
+         */
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            50: '#eef1f8',
+                            100: '#d9dfef',
+                            200: '#b3bfdf',
+                            300: '#8d9fcf',
+                            400: '#667fbf',
+                            500: '#3d5a99',
+                            600: '#2d4373',
+                            700: '#1e2d4d',
+                            800: '#141e33',
+                            900: '#0a0f1a',
+                            950: '#050810',
+                        },
+                        gold: {
+                            50: '#fdf9ed',
+                            100: '#f9eece',
+                            200: '#f2dc9d',
+                            300: '#ebc96c',
+                            400: '#e4b73b',
+                            500: '#d4a017',
+                            600: '#b38312',
+                            700: '#8a640e',
+                            800: '#614609',
+                            900: '#382805',
+                        },
+                        accent: {
+                            50: '#fef2f2',
+                            100: '#fde3e3',
+                            200: '#fbc8c8',
+                            300: '#f8a0a0',
+                            400: '#f47070',
+                            500: '#e83e3e',
+                            600: '#c92020',
+                            700: '#a51919',
+                            800: '#871616',
+                            900: '#6f1515',
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+
+    <script>
+        window.DEFAULT_PLAYER_IMAGE_URL = "{{ default_player_image_url }}";
+        window.DEFAULT_FRAME_IMAGE_URL = "{{ default_frame_image_url }}";
+    </script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style type="text/tailwindcss">
+        /* Global Styles */
+        body {
+            @apply font-sans antialiased bg-white text-navy-800
+                   dark:bg-navy-950 dark:text-gray-100;
+        }
+        .container-main {
+            @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        .animate-fade-in-up { animation: fadeInUp 0.6s ease-out forwards; }
+        .animate-fade-in    { animation: fadeIn 0.4s ease-out forwards; }
+
+        /* Navbar active indicator */
+        .hover-border::after {
+            content: '';
+            @apply absolute bottom-0 left-0 w-0 h-[2px] bg-gold-500 dark:bg-gold-400 transition-all duration-300;
+        }
+        .hover-border:hover::after, .hover-border.active::after {
+            @apply w-full;
+        }
+    </style>
+
+    {% block head %}{% endblock %}
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <!-- ════════════════════════════════════════════
+         STICKY NAVIGATION BAR
+         ════════════════════════════════════════════ -->
+    <header
+        class="sticky top-0 z-50 w-full bg-white/80 dark:bg-navy-950/80 backdrop-blur-md border-b border-gray-200/50 dark:border-navy-800/50">
+        <div class="container-main">
+            <div class="flex items-center justify-between h-16 sm:h-20">
+
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-2.5 group">
+                    <div
+                        class="w-9 h-9 rounded-lg bg-gradient-to-tr from-navy-800 to-navy-600 dark:from-gold-500 dark:to-gold-400 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                        <svg class="w-5 h-5 text-gold-400 dark:text-navy-950" fill="none" stroke="currentColor"
+                            stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" />
+                            <path
+                                d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                        </svg>
+                    </div>
+                    <span class="font-black text-lg sm:text-xl tracking-wider text-navy-950 dark:text-white uppercase">
+                        WC <span class="text-gold-500 dark:text-gold-400">2026</span>
+                    </span>
+                </a>
+
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex items-center gap-8">
+                    <a href="/"
+                        class="hover-border relative py-2 text-sm uppercase tracking-wider font-medium {% if request.path == '/' %}active text-navy-950 dark:text-white font-semibold{% else %}text-navy-500 hover:text-navy-950 dark:text-gray-400 dark:hover:text-white{% endif %} transition-colors">Home</a>
+                    <a href="/players"
+                        class="hover-border relative py-2 text-sm uppercase tracking-wider font-medium {% if '/players' in request.path %}active text-navy-950 dark:text-white font-semibold{% else %}text-navy-500 hover:text-navy-950 dark:text-gray-400 dark:hover:text-white{% endif %} transition-colors">Players</a>
+                    <a href="/teams"
+                        class="hover-border relative py-2 text-sm uppercase tracking-wider font-medium {% if '/teams' in request.path %}active text-navy-950 dark:text-white font-semibold{% else %}text-navy-500 hover:text-navy-950 dark:text-gray-400 dark:hover:text-white{% endif %} transition-colors">Teams</a>
+                    <a href="/dashboard"
+                        class="hover-border relative py-2 text-sm uppercase tracking-wider font-medium {% if '/dashboard' in request.path %}active text-navy-950 dark:text-white font-semibold{% else %}text-navy-500 hover:text-navy-950 dark:text-gray-400 dark:hover:text-white{% endif %} transition-colors">My
+                        Squad</a>
+                </nav>
+
+                <!-- Actions: Theme Toggle + Mobile Menu -->
+                <div class="flex items-center gap-3">
+                    <!-- Theme Toggle Button -->
+                    <button id="theme-toggle"
+                        class="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-navy-900 dark:hover:bg-navy-800 text-gray-500 dark:text-gray-400 transition-all cursor-pointer"
+                        aria-label="Toggle Theme">
+                        <!-- Sun icon (visible in dark mode) -->
+                        <svg id="theme-toggle-sun" class="hidden w-5 h-5" fill="none" stroke="currentColor"
+                            stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" />
+                        </svg>
+                        <!-- Moon icon (visible in light mode) -->
+                        <svg id="theme-toggle-moon" class="hidden w-5 h-5" fill="none" stroke="currentColor"
+                            stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    </button>
+
+                    <!-- Mobile Menu Toggle -->
+                    <button id="mobile-menu-toggle"
+                        class="md:hidden p-2 rounded-xl text-navy-800 dark:text-white hover:bg-gray-100 dark:hover:bg-navy-900 transition-colors cursor-pointer"
+                        aria-label="Toggle Menu">
+                        <svg id="menu-icon-open" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg id="menu-icon-close" class="hidden w-6 h-6" fill="none" stroke="currentColor"
+                            stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation -->
+        <div id="mobile-menu"
+            class="hidden md:hidden border-t border-gray-100 dark:border-navy-900 bg-white/95 dark:bg-navy-950/95 backdrop-blur-md px-4 py-4 space-y-1">
+            <a href="/"
+                class="block px-4 py-3 rounded-xl text-sm uppercase tracking-wider font-semibold {% if request.path == '/' %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">Home</a>
+            <a href="/players"
+                class="block px-4 py-3 rounded-xl text-sm uppercase tracking-wider font-semibold {% if '/players' in request.path %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">Players</a>
+            <a href="/teams"
+                class="block px-4 py-3 rounded-xl text-sm uppercase tracking-wider font-semibold {% if '/teams' in request.path %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">Teams</a>
+            <a href="/dashboard"
+                class="block px-4 py-3 rounded-xl text-sm uppercase tracking-wider font-semibold {% if '/dashboard' in request.path %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">My
+                Squad</a>
+        </div>
+    </header>
+
+    <!-- ════════════════════════════════════════════
+         MAIN CONTENT
+         ════════════════════════════════════════════ -->
+    <main class="flex-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ════════════════════════════════════════════
+         PLAYER MODAL (shared across all pages)
+         ════════════════════════════════════════════ -->
+    <div id="player-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div id="modal-overlay"
+            class="absolute inset-0 bg-navy-950/60 backdrop-blur-sm opacity-0 transition-opacity duration-200"></div>
+
+        <!-- Modal Content -->
+        <div id="modal-content"
+            class="relative w-full max-w-lg bg-white dark:bg-navy-900 rounded-3xl shadow-2xl overflow-hidden opacity-0 scale-95 transition-all duration-300">
+            <!-- Close button -->
+            <button id="modal-close"
+                class="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/80 dark:bg-navy-800/80 hover:bg-white dark:hover:bg-navy-800 text-gray-500 dark:text-gray-400 transition-all cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <!-- Player Image — FUT-style card display -->
+            <div class="aspect-[3/4] modal-card-img modal-card-frame">
+                <img id="modal-frame-image" src="" alt="" class="frame-layer"
+                    onerror="this.src=window.DEFAULT_FRAME_IMAGE_URL">
+                <img id="modal-player-image" src="" alt="" class="player-layer"
+                    onerror="this.src=window.DEFAULT_PLAYER_IMAGE_URL">
+            </div>
+
+            <!-- Player Info -->
+            <div class="p-6 sm:p-8">
+                <h2 id="modal-player-name" class="text-2xl sm:text-3xl font-extrabold text-navy-900 dark:text-white">
+                </h2>
+
+                <div class="flex items-center gap-3 mt-3">
+                    <span id="modal-player-nationality" class="text-gray-500 dark:text-gray-400 text-lg"></span>
+                </div>
+
+                <div class="flex flex-wrap gap-3 mt-5">
+                    <div class="px-4 py-2 rounded-xl bg-navy-100 dark:bg-navy-800">
+                        <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Position</span>
+                        <p id="modal-player-primary" class="font-bold text-navy-900 dark:text-white mt-0.5"></p>
+                    </div>
+                    <div id="modal-secondary-container"
+                        class="px-4 py-2 rounded-xl bg-gold-50 dark:bg-gold-500/10 hidden">
+                        <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Secondary</span>
+                        <p id="modal-player-secondary" class="font-bold text-gold-700 dark:text-gold-400 mt-0.5"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         FOOTER
+         ════════════════════════════════════════════ -->
+    <footer class="border-t border-gray-200 dark:border-navy-800/50">
+        <div class="container-main py-10">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p class="text-sm text-gray-400 dark:text-gray-500">
+                    &copy; 2026 FIFA World Cup Player Database
+                </p>
+                <p class="text-xs text-gray-300 dark:text-gray-600">
+                    Demo project — For demonstration purposes only
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Theme init (before JS to prevent flash) -->
+    <script>
+        (function () {
+            const saved = localStorage.getItem('theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+
+    <!-- Main JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

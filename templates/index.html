@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}{{ config.APP_NAME }} — Home{% endblock %}
+
+{% block content %}
+
+<!-- ════════════════════════════════════════════
+     HERO BANNER
+     ════════════════════════════════════════════ -->
+<section class="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
+    <!-- Background Image -->
+    <div class="absolute inset-0">
+        <div class="w-full h-full bg-cover bg-center hero-bg-image"></div>
+        <!-- Gradient Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-b from-navy-950/70 via-navy-950/50 to-navy-950/90"></div>
+    </div>
+
+    <!-- Hero Content -->
+    <div class="relative z-10 container-main text-center py-20">
+        <div class="max-w-3xl mx-auto animate-fade-in-up">
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-500/20 border border-gold-500/30 mb-8">
+                <span class="w-2 h-2 rounded-full bg-gold-400 animate-pulse"></span>
+                <span class="text-gold-300 text-sm font-medium tracking-wide uppercase">United States • Mexico • Canada</span>
+            </div>
+
+            <!-- Headline -->
+            <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.1]">
+                FIFA World Cup
+                <span class="block text-gold-400 mt-2">2026</span>
+            </h1>
+
+            <!-- Subheadline -->
+            <p class="text-lg sm:text-xl text-gray-300 mt-6 max-w-xl mx-auto leading-relaxed">
+                Explore the complete player database. Browse squads, discover talent, and build your dream team.
+            </p>
+
+            <!-- Search Bar -->
+            <div class="mt-10 max-w-lg mx-auto">
+                <div class="relative group">
+                    <div class="absolute inset-0 bg-gold-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-0 group-hover:opacity-100"></div>
+                    <div class="relative flex items-center bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl overflow-hidden hover:border-gold-500/40 transition-all duration-300">
+                        <svg class="w-5 h-5 text-gray-400 ml-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"/>
+                        </svg>
+                        <input id="hero-search" type="text" placeholder="Search players, teams, positions..."
+                               class="w-full px-4 py-4 bg-transparent text-white placeholder-gray-400 outline-none text-lg">
+                    </div>
+                </div>
+                <p class="text-gray-500 text-sm mt-3">Press Enter to search</p>
+            </div>
+
+            <!-- CTA Button -->
+            <div class="mt-8">
+                <a href="/players" class="inline-flex items-center gap-2 px-8 py-3.5 bg-gold-500 hover:bg-gold-400 text-navy-950 font-bold rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-gold-500/25 hover:-translate-y-0.5 text-sm uppercase tracking-wider">
+                    Browse All Players
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Gradient Fade -->
+    <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white dark:from-navy-950 to-transparent"></div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+     FEATURED PLAYERS
+     ════════════════════════════════════════════ -->
+<section class="container-main py-20">
+    <div class="text-center mb-12 scroll-animate">
+        <span class="text-gold-500 text-sm font-semibold uppercase tracking-widest">Discover</span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-navy-900 dark:text-white mt-2">Featured Players</h2>
+        <p class="text-gray-500 dark:text-gray-400 mt-3 max-w-lg mx-auto">Spotlight on some of the tournament's most exciting talent</p>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        {% for player in featured %}
+        <div class="scroll-animate group cursor-pointer" onclick="openPlayerModal({{ player.id }})">
+            <div class="relative overflow-hidden rounded-2xl bg-gray-50 dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50 hover:border-gold-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-navy-900/5 dark:hover:shadow-gold-500/5 hover:-translate-y-1">
+                <div class="aspect-[3/4] player-card-img">
+                    <img src="{{ player.frame_image_url }}" alt="" class="frame-layer"
+                         onerror="this.src='{{ default_frame_image_url }}'">
+                    <img src="{{ player.player_image_url }}" alt="{{ player.name }}" class="player-layer"
+                         onerror="this.src='{{ default_player_image_url }}'" loading="lazy">
+                </div>
+
+                <div class="p-4">
+                    <h3 class="font-bold text-navy-900 dark:text-white text-base sm:text-lg truncate">{{ player.name }}</h3>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ flags.get(player.nationality, '🏳️') }} {{ player.nationality }}</span>
+                    </div>
+                    <div class="mt-2">
+                        <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-navy-100 text-navy-700 dark:bg-navy-800 dark:text-navy-200">{{ player.primary_position }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="text-center mt-12 scroll-animate">
+        <a href="/players" class="inline-flex items-center gap-2 px-6 py-3 border-2 border-navy-200 dark:border-navy-700 text-navy-600 dark:text-gray-300 hover:border-gold-500 hover:text-gold-600 dark:hover:border-gold-500 dark:hover:text-gold-400 font-semibold rounded-xl transition-all duration-300 text-sm uppercase tracking-wider">
+            View All Players
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+        </a>
+    </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+     BROWSE TEAMS
+     ════════════════════════════════════════════ -->
+<section class="bg-gray-50 dark:bg-navy-900/50 py-20">
+    <div class="container-main">
+        <div class="text-center mb-12 scroll-animate">
+            <span class="text-gold-500 text-sm font-semibold uppercase tracking-widest">Nations</span>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-navy-900 dark:text-white mt-2">Browse Teams</h2>
+            <p class="text-gray-500 dark:text-gray-400 mt-3 max-w-lg mx-auto">Explore squads from {{ teams|length }} participating nations</p>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            {% for team in teams %}
+            <a href="/teams/{{ team.nationality }}" class="scroll-animate group">
+                <div class="text-center p-6 sm:p-8 rounded-2xl bg-white dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50 hover:border-gold-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-navy-900/5 dark:hover:shadow-gold-500/5 hover:-translate-y-1">
+                    <span class="text-4xl sm:text-5xl">{{ team.flag }}</span>
+                    <h3 class="font-bold text-navy-900 dark:text-white mt-3 text-base sm:text-lg">{{ team.nationality }}</h3>
+                    <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">{{ team.count }} players</p>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}
