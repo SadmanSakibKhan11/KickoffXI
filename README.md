@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # ⚽ KickoffXI — FIFA World Cup 2026 Player Database
 
 A full-featured web application for browsing and searching every player in the **FIFA World Cup 2026** tournament. Built with **Flask** and powered by CSV-based data, the app provides a fast, searchable player database with a modern, responsive UI.
