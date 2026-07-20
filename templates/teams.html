@@ -21,7 +21,7 @@
         {% for team in teams %}
         <a href="/teams/{{ team.nationality }}" class="scroll-animate group">
             <div class="text-center p-8 sm:p-10 rounded-2xl bg-white dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50 hover:border-gold-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-navy-900/5 dark:hover:shadow-gold-500/5 hover:-translate-y-1">
-                <span class="text-5xl sm:text-6xl block">{{ team.flag }}</span>
+                <span class="text-5xl sm:text-6xl block">{{ flag_img(team.flag, 56) }}</span>
                 <h3 class="font-bold text-navy-900 dark:text-white mt-4 text-lg">{{ team.nationality }}</h3>
                 <p class="text-sm text-gray-400 dark:text-gray-500 mt-1.5">{{ team.count }} player{{ 's' if team.count != 1 }}</p>
                 <div class="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-gold-600 dark:text-gold-400 opacity-0 group-hover:opacity-100 transition-opacity">

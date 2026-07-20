@@ -75,6 +75,7 @@
     <script>
         window.DEFAULT_PLAYER_IMAGE_URL = "{{ default_player_image_url }}";
         window.DEFAULT_FRAME_IMAGE_URL = "{{ default_frame_image_url }}";
+        window.COUNTRY_FLAGS = {{ flags|default({})|tojson }};
     </script>
 
     <!-- Custom CSS -->

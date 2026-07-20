@@ -91,7 +91,7 @@
                 <div class="p-4">
                     <h3 class="font-bold text-navy-900 dark:text-white text-base sm:text-lg truncate">{{ player.name }}</h3>
                     <div class="flex items-center gap-2 mt-1">
-                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ flags.get(player.nationality, '🏳️') }} {{ player.nationality }}</span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ flag_img(flags.get(player.nationality, ''), 16) }} {{ player.nationality }}</span>
                     </div>
                     <div class="mt-2">
                         <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-navy-100 text-navy-700 dark:bg-navy-800 dark:text-navy-200">{{ player.primary_position }}</span>
@@ -128,7 +128,7 @@
             {% for team in teams %}
             <a href="/teams/{{ team.nationality }}" class="scroll-animate group">
                 <div class="text-center p-6 sm:p-8 rounded-2xl bg-white dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50 hover:border-gold-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-navy-900/5 dark:hover:shadow-gold-500/5 hover:-translate-y-1">
-                    <span class="text-4xl sm:text-5xl">{{ team.flag }}</span>
+                    <span class="text-4xl sm:text-5xl">{{ flag_img(team.flag, 48) }}</span>
                     <h3 class="font-bold text-navy-900 dark:text-white mt-3 text-base sm:text-lg">{{ team.nationality }}</h3>
                     <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">{{ team.count }} players</p>
                 </div>

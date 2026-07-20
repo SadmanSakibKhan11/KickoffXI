@@ -47,14 +47,36 @@ def create_app(config_name=None):
     @app.context_processor
     def inject_defaults():
         from flask import url_for
+        from app.routes import COUNTRY_FLAGS
         default_img = app.config.get('DEFAULT_PLAYER_IMAGE', 'players/default.png')
         default_url = url_for('static', filename='img/' + default_img)
         default_frame = app.config.get('DEFAULT_FRAME_IMAGE', 'teams/default_frame.png')
         default_frame_url = url_for('static', filename='img/' + default_frame)
         return {
             'default_player_image_url': default_url,
-            'default_frame_image_url': default_frame_url
+            'default_frame_image_url': default_frame_url,
+            'flags': COUNTRY_FLAGS,
         }
+
+    # Register Jinja2 global function for flag images
+    from markupsafe import Markup
+
+    def flag_img(country_code, size=24):
+        """
+        Generate an inline <img> tag for a country flag using flagcdn.com SVG CDN.
+        Returns empty string if no valid country code is provided.
+        """
+        if not country_code:
+            return ''
+        src = f'https://flagcdn.com/{country_code}.svg'
+        return Markup(
+            f'<img src="{src}" alt="" '
+            f'width="{size}" height="{int(size * 0.75)}" '
+            f'style="display:inline-block;vertical-align:middle;border-radius:2px;" '
+            f'loading="lazy">'
+        )
+
+    app.jinja_env.globals['flag_img'] = flag_img
 
     # Register blueprints / routes
     from app.routes import main_bp

@@ -7,6 +7,19 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    /**
+     * Generate an inline <img> tag for a country flag using flagcdn.com SVG CDN.
+     * Uses the COUNTRY_FLAGS mapping injected from the server.
+     */
+    function flagImgHtml(nationality, size = 16) {
+        const flags = window.COUNTRY_FLAGS || {};
+        const code = flags[nationality];
+        if (!code) return '';
+        const h = Math.round(size * 0.75);
+        return `<img src="https://flagcdn.com/${code}.svg" alt="" width="${size}" height="${h}" style="display:inline-block;vertical-align:middle;border-radius:2px;" loading="lazy">`;
+    }
+
+
     // ============================================================
     // 1. THEME TOGGLE
     // ============================================================
@@ -90,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (modalImage) modalImage.src = player.player_image_url;
                 if (modalImage) modalImage.alt = player.name;
                 if (modalName) modalName.textContent = player.name;
-                if (modalNationality) modalNationality.textContent = player.nationality;
+                if (modalNationality) modalNationality.innerHTML = flagImgHtml(player.nationality, 20) + ' ' + player.nationality;
                 if (modalPrimary) modalPrimary.textContent = player.primary_position;
 
                 if (modalSecondary && modalSecondaryContainer) {
@@ -189,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="p-4">
                         <h3 class="font-bold text-navy-900 dark:text-white text-lg truncate">${player.name}</h3>
                         <div class="flex items-center gap-2 mt-1.5">
-                            <span class="text-sm text-gray-500 dark:text-gray-400">${player.nationality}</span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">${flagImgHtml(player.nationality)} ${player.nationality}</span>
                         </div>
                         <div class="mt-2">
                             <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-navy-100 text-navy-700 dark:bg-navy-800 dark:text-navy-200">${player.primary_position}</span>

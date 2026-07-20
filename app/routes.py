@@ -27,18 +27,19 @@ main_bp = Blueprint('main', __name__)
 # Country flag emoji mapping
 # ============================================================
 COUNTRY_FLAGS = {
-    'Brazil': '🇧🇷',
-    'Argentina': '🇦🇷',
-    'France': '🇫🇷',
-    'Germany': '🇩🇪',
-    'Spain': '🇪🇸',
-    'England': '🏴\U000E0067\U000E0062\U000E0065\U000E006E\U000E0067\U000E007F',
-    'Portugal': '🇵🇹',
-    'Netherlands': '🇳🇱',
-    'USA': '🇺🇸',
-    'Mexico': '🇲🇽',
-    'Japan': '🇯🇵',
-    'South Korea': '🇰🇷',
+    'Brazil': 'br',
+    'Argentina': 'ar',
+    'France': 'fr',
+    'Germany': 'de',
+    'Spain': 'es',
+    'England': 'gb-eng',
+    'Portugal': 'pt',
+    'Netherlands': 'nl',
+    'USA': 'us',
+    'Mexico': 'mx',
+    'Japan': 'jp',
+    'South Korea': 'kr',
+    'Canada': 'ca',
 }
 
 
