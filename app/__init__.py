@@ -35,8 +35,9 @@ def create_app(config_name=None):
     # Load configuration
     app.config.from_object(config[config_name])
 
-    # Ensure default placeholder folder structure and file exist
+    # Ensure default placeholder folder structure and branding folders exist
     ensure_placeholder_image(app)
+    ensure_branding_dir(app)
 
     # Initialize CSVDataLoader on startup
     from app.data_loader import CSVDataLoader
@@ -52,10 +53,31 @@ def create_app(config_name=None):
         default_url = url_for('static', filename='img/' + default_img)
         default_frame = app.config.get('DEFAULT_FRAME_IMAGE', 'teams/default_frame.png')
         default_frame_url = url_for('static', filename='img/' + default_frame)
+
+        # Check for custom branding logo and favicon
+        static_folder = app.static_folder
+        if not os.path.isabs(static_folder):
+            static_folder = os.path.abspath(os.path.join(app.root_path, static_folder))
+        branding_dir = os.path.normpath(os.path.join(static_folder, 'img', 'branding'))
+
+        logo_url = None
+        for logo_name in ['logo.png', 'logo.svg', 'logo.jpg', 'logo.webp']:
+            if os.path.isfile(os.path.join(branding_dir, logo_name)):
+                logo_url = url_for('static', filename=f'img/branding/{logo_name}')
+                break
+
+        favicon_url = None
+        for fav_name in ['favicon.ico', 'favicon.png', 'favicon.svg']:
+            if os.path.isfile(os.path.join(branding_dir, fav_name)):
+                favicon_url = url_for('static', filename=f'img/branding/{fav_name}')
+                break
+
         return {
             'default_player_image_url': default_url,
             'default_frame_image_url': default_frame_url,
             'flags': COUNTRY_FLAGS,
+            'logo_url': logo_url,
+            'favicon_url': favicon_url,
         }
 
     # Register Jinja2 global function for flag images
@@ -113,5 +135,17 @@ def ensure_placeholder_image(app):
             tiny_png_bytes = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc` \x05\x00\x00\x0b\x00\x01\x02\x1f\x14\x8b\x00\x00\x00\x00IEND\xaeB`\x82'
             with open(placeholder_abs_path, 'wb') as f:
                 f.write(tiny_png_bytes)
+
+
+def ensure_branding_dir(app):
+    """
+    Ensures that the static/img/branding folder exists for logo and favicon images.
+    """
+    static_folder = app.static_folder
+    if not os.path.isabs(static_folder):
+        static_folder = os.path.abspath(os.path.join(app.root_path, static_folder))
+    branding_dir = os.path.normpath(os.path.join(static_folder, 'img', 'branding'))
+    if not os.path.exists(branding_dir):
+        os.makedirs(branding_dir, exist_ok=True)
 
 

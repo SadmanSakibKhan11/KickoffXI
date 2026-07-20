@@ -23,7 +23,7 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
     # Application metadata
-    APP_NAME = 'FIFA World Cup 2026'
+    APP_NAME = 'KickoffXI'
     APP_DESCRIPTION = 'Player Database — Browse and search every player in the tournament.'
     DEFAULT_PLAYER_IMAGE = 'players/default.png'
     DEFAULT_FRAME_IMAGE = 'teams/default_frame.png'

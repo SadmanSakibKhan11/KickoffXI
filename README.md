@@ -204,7 +204,7 @@ The app supports **development** and **production** configurations via `config.p
 | Setting                | Default                        | Description                           |
 | ---------------------- | ------------------------------ | ------------------------------------- |
 | `SECRET_KEY`           | `dev-secret-key-...`           | Flask secret key (override via env)   |
-| `APP_NAME`             | `FIFA World Cup 2026`          | Application display name              |
+| `APP_NAME`             | `KickoffXI`                    | Application display name              |
 | `APP_DESCRIPTION`      | `Player Database — Browse...`  | Application description               |
 | `DEFAULT_PLAYER_IMAGE` | `players/default.png`          | Fallback image for players            |
 | `DEBUG`                | `True` (dev) / `False` (prod)  | Flask debug mode                      |

@@ -8,6 +8,14 @@
 
     <title>{% block title %}{{ config.APP_NAME }}{% endblock %}</title>
 
+    <!-- Favicon Support -->
+    {% if favicon_url %}
+    <link rel="icon" href="{{ favicon_url }}">
+    {% else %}
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/branding/favicon.ico') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/branding/favicon.png') }}">
+    {% endif %}
+
     <!-- Google Fonts — Inter for clean, modern typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -128,17 +136,13 @@
 
                 <!-- Logo -->
                 <a href="/" class="flex items-center gap-2.5 group">
-                    <div
-                        class="w-9 h-9 rounded-lg bg-gradient-to-tr from-navy-800 to-navy-600 dark:from-gold-500 dark:to-gold-400 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                        <svg class="w-5 h-5 text-gold-400 dark:text-navy-950" fill="none" stroke="currentColor"
-                            stroke-width="2" viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10" />
-                            <path
-                                d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                        </svg>
-                    </div>
+                    {% if logo_url %}
+                    <img src="{{ logo_url }}" alt="{{ config.APP_NAME }}" class="h-8 sm:h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105" onerror="this.style.display='none';">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='img/branding/logo.png') }}" alt="{{ config.APP_NAME }}" class="h-8 sm:h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105" onerror="this.style.display='none';">
+                    {% endif %}
                     <span class="font-black text-lg sm:text-xl tracking-wider text-navy-950 dark:text-white uppercase">
-                        WC <span class="text-gold-500 dark:text-gold-400">2026</span>
+                        {{ config.APP_NAME }}
                     </span>
                 </a>
 
@@ -272,10 +276,10 @@
         <div class="container-main py-10">
             <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <p class="text-sm text-gray-400 dark:text-gray-500">
-                    &copy; 2026 FIFA World Cup Player Database
+                    &copy; 2026 {{ config.APP_NAME }}
                 </p>
                 <p class="text-xs text-gray-300 dark:text-gray-600">
-                    Demo project — For demonstration purposes only
+                    Built for the FIFA World Cup 2026
                 </p>
             </div>
         </div>
