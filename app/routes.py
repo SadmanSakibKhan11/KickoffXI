@@ -40,6 +40,7 @@ COUNTRY_FLAGS = {
     'Japan': 'jp',
     'South Korea': 'kr',
     'Canada': 'ca',
+    'Belgium': 'be',
 }
 
 
