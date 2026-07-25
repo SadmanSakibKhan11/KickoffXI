@@ -115,6 +115,75 @@ def team_detail(nationality):
     )
 
 
+@main_bp.route('/champions')
+def champions():
+    """
+    Champions showcase page — Celebrates the World Cup 2026 Champions.
+    Data is loaded from the champion_data module.
+    """
+    import json
+    from app.champion_data import get_champion_data
+
+    champion = get_champion_data()
+
+    # Resolve player image URLs for all squad members (starting XI + bench)
+    all_squad = champion['starting_xi'] + champion['bench']
+    for player_entry in all_squad:
+        _resolve_champion_player_images(player_entry)
+
+    # Build a JSON-safe copy for JS injection
+    champion_json = json.dumps(champion, default=str)
+
+    return render_template(
+        'champions.html',
+        champion=champion,
+        champion_json=champion_json,
+        flags=COUNTRY_FLAGS,
+    )
+
+
+def _resolve_champion_player_images(player_entry):
+    """
+    Resolve frame and player image URLs for a champion squad member.
+    Uses the existing data_loader image resolution system.
+    """
+    from flask import url_for
+    import os
+
+    nationality = player_entry.get('nationality', '')
+    name = player_entry.get('name', '')
+
+    # Use the existing sanitize_filename logic
+    from app.data_loader import sanitize_filename
+
+    country_folder = sanitize_filename(nationality)
+    player_file = sanitize_filename(name) + '.png'
+
+    player_image_rel = f'teams/{country_folder}/players/{player_file}'
+    frame_image_rel = f'teams/{country_folder}/frame.png'
+
+    static_folder = current_app.static_folder
+    if not os.path.isabs(static_folder):
+        static_folder = os.path.abspath(os.path.join(current_app.root_path, static_folder))
+    img_base = os.path.normpath(os.path.join(static_folder, 'img'))
+
+    # Resolve player image
+    player_img_path = os.path.normpath(os.path.join(img_base, player_image_rel))
+    if os.path.isfile(player_img_path):
+        player_entry['player_image_url'] = url_for('static', filename='img/' + player_image_rel)
+    else:
+        fallback = current_app.config.get('DEFAULT_PLAYER_IMAGE', 'players/default.png')
+        player_entry['player_image_url'] = url_for('static', filename='img/' + fallback)
+
+    # Resolve frame image
+    frame_img_path = os.path.normpath(os.path.join(img_base, frame_image_rel))
+    if os.path.isfile(frame_img_path):
+        player_entry['frame_image_url'] = url_for('static', filename='img/' + frame_image_rel)
+    else:
+        fallback = current_app.config.get('DEFAULT_FRAME_IMAGE', 'teams/default_frame.png')
+        player_entry['frame_image_url'] = url_for('static', filename='img/' + fallback)
+
+
 @main_bp.route('/dashboard')
 def dashboard():
     """

@@ -170,3 +170,189 @@ select {
         inset 0 0 30px rgba(212, 160, 23, 0.08),
         0 0 40px rgba(212, 160, 23, 0.1);
 }
+
+
+/* ============================================
+   Champions Page — Football Pitch
+   ============================================ */
+.champion-pitch {
+    background: linear-gradient(180deg, #14532d 0%, #166534 30%, #15803d 50%, #166534 70%, #14532d 100%);
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.5rem;
+    border: 2px solid rgba(34, 197, 94, 0.2);
+}
+
+/* Pitch field lines (decorative) */
+.champion-pitch::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 5%;
+    right: 5%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.champion-pitch::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Pitch grass stripe pattern */
+.champion-pitch-stripes {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        180deg,
+        transparent,
+        transparent 11%,
+        rgba(255, 255, 255, 0.015) 11%,
+        rgba(255, 255, 255, 0.015) 22%
+    );
+    pointer-events: none;
+}
+
+/* ============================================
+   Champions Page — Pitch Player Cards
+   ============================================ */
+.champion-pitch-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.champion-pitch-card:hover {
+    transform: translateY(-4px);
+    filter: brightness(1.08);
+}
+
+.champion-pitch-card .player-card-img {
+    border-radius: 0.75rem;
+}
+
+/* ============================================
+   Champions Page — Champion Modal
+   ============================================ */
+.champion-modal-card {
+    position: relative;
+    overflow: hidden;
+    background: radial-gradient(ellipse at center, #1e2d4d 0%, #0a0f1a 100%);
+    box-shadow:
+        inset 0 0 0 2px rgba(212, 160, 23, 0.5),
+        inset 0 0 40px rgba(212, 160, 23, 0.12),
+        0 0 60px rgba(212, 160, 23, 0.15);
+}
+
+.champion-modal-card .frame-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.champion-modal-card .player-layer {
+    position: absolute;
+    bottom: 0;
+    left: 4%;
+    width: 92%;
+    height: 92%;
+    object-fit: contain;
+    object-position: center bottom;
+    z-index: 20;
+    transition: transform 0.3s ease;
+}
+
+/* ============================================
+   Champions Page — Scroll Animations
+   ============================================ */
+.champ-scroll-animate {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+
+.champ-scroll-animate.animate-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Staggered delays for champion sections */
+.champ-scroll-animate:nth-child(1) { transition-delay: 0ms; }
+.champ-scroll-animate:nth-child(2) { transition-delay: 80ms; }
+.champ-scroll-animate:nth-child(3) { transition-delay: 160ms; }
+.champ-scroll-animate:nth-child(4) { transition-delay: 240ms; }
+.champ-scroll-animate:nth-child(5) { transition-delay: 320ms; }
+.champ-scroll-animate:nth-child(6) { transition-delay: 400ms; }
+.champ-scroll-animate:nth-child(7) { transition-delay: 480ms; }
+
+/* ============================================
+   Champions Page — Journey Timeline
+   ============================================ */
+.champion-journey-line {
+    position: relative;
+}
+
+.champion-journey-line::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg,
+        rgba(212, 160, 23, 0.1) 0%,
+        rgba(212, 160, 23, 0.4) 50%,
+        rgba(212, 160, 23, 0.8) 100%
+    );
+    transform: translateX(-50%);
+}
+
+@media (max-width: 640px) {
+    .champion-journey-line::before {
+        left: 24px;
+    }
+}
+
+/* ============================================
+   Champions Page — Hero Background
+   ============================================ */
+.champion-hero-bg {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* ============================================
+   Champions Bench — Horizontal Scroll on Mobile
+   ============================================ */
+@media (max-width: 768px) {
+    .champion-bench-scroll {
+        display: flex;
+        overflow-x: auto;
+        gap: 1rem;
+        padding-bottom: 0.5rem;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+    }
+    .champion-bench-scroll > * {
+        flex: 0 0 160px;
+        scroll-snap-align: start;
+    }
+    .champion-bench-scroll::-webkit-scrollbar {
+        height: 4px;
+    }
+    .champion-bench-scroll::-webkit-scrollbar-thumb {
+        background: rgba(212, 160, 23, 0.3);
+        border-radius: 2px;
+    }
+}
