@@ -5,16 +5,16 @@
 {% block content %}
 
 <!-- Team Banner -->
-<section class="bg-gradient-to-b from-navy-800 to-navy-950 py-16 sm:py-24 relative overflow-hidden">
+<section class="bg-gradient-to-b from-navy-800 to-navy-950 py-12 sm:py-16 relative overflow-hidden">
     <!-- Decorative circles -->
     <div class="absolute top-0 right-0 w-96 h-96 bg-gold-500/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
     <div class="absolute bottom-0 left-0 w-64 h-64 bg-gold-500/5 rounded-full translate-y-1/2 -translate-x-1/2"></div>
 
     <div class="container-main relative z-10">
         <div class="text-center animate-fade-in-up">
-            <span class="text-7xl sm:text-8xl block">{{ flag_img(flag, 80) }}</span>
-            <h1 class="text-4xl sm:text-5xl font-extrabold text-white mt-4">{{ nationality }}</h1>
-            <p class="text-gray-400 mt-3 text-lg">{{ players|length }} player{{ 's' if players|length != 1 }} in squad</p>
+            <span class="text-7xl sm:text-8xl block">{{ flag_img(flag, 56) }}</span>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white mt-3">{{ nationality }}</h1>
+            <p class="text-gray-400 mt-2.5 text-base">{{ players|length }} player{{ 's' if players|length != 1 }} in squad</p>
 
             <!-- Back to teams -->
             <a href="/teams" class="inline-flex items-center gap-2 mt-6 text-sm text-gray-400 hover:text-gold-400 transition-colors">
@@ -35,14 +35,14 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"/>
             </svg>
             <input id="team-search" type="text" placeholder="Search within {{ nationality }}..."
-                   class="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white dark:bg-navy-900 border border-gray-200 dark:border-navy-800 text-navy-900 dark:text-white placeholder-gray-400 outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 shadow-lg shadow-navy-900/5 transition-all">
+                   class="w-full pl-12 pr-4 py-2.5 rounded-2xl bg-white dark:bg-navy-900 border border-gray-200 dark:border-navy-800 text-navy-900 dark:text-white placeholder-gray-400 outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 shadow-lg shadow-navy-900/5 transition-all">
         </div>
     </div>
 </section>
 
 <!-- Player Grid -->
-<section class="container-main py-12 pb-20">
-    <div id="team-player-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5">
+<section class="container-main py-10 pb-14">
+    <div id="team-player-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
         {% for player in players %}
         <div class="team-player-card scroll-animate group cursor-pointer" onclick="openPlayerModal({{ player.id }})" data-name="{{ player.name|lower }}" data-position="{{ player.primary_position|lower }}">
             <div class="relative overflow-hidden rounded-2xl bg-gray-50 dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50 hover:border-gold-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-navy-900/5 dark:hover:shadow-gold-500/5 hover:-translate-y-1">
@@ -53,8 +53,8 @@
                          onerror="this.src='{{ default_player_image_url }}'" loading="lazy">
                 </div>
 
-                <div class="p-3 sm:p-4">
-                    <h3 class="font-bold text-navy-900 dark:text-white text-sm sm:text-base truncate">{{ player.name }}</h3>
+                <div class="p-2.5 sm:p-3">
+                    <h3 class="font-bold text-navy-900 dark:text-white text-xs sm:text-sm truncate">{{ player.name }}</h3>
                     <div class="mt-2 flex flex-wrap gap-1.5">
                         <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-navy-100 text-navy-700 dark:bg-navy-800 dark:text-navy-200">{{ player.primary_position }}</span>
                         {% if player.secondary_position %}

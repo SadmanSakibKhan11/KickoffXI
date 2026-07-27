@@ -96,7 +96,7 @@
                    dark:bg-navy-950 dark:text-gray-100;
         }
         .container-main {
-            @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+            @apply max-w-6xl mx-auto px-4 sm:px-5 lg:px-7;
         }
 
         /* Animations */
@@ -132,22 +132,22 @@
     <header
         class="sticky top-0 z-50 w-full bg-white/80 dark:bg-navy-950/80 backdrop-blur-md border-b border-gray-200/50 dark:border-navy-800/50">
         <div class="container-main">
-            <div class="flex items-center justify-between h-16 sm:h-20">
+            <div class="flex items-center justify-between h-14 sm:h-16">
 
                 <!-- Logo -->
-                <a href="/" class="flex items-center gap-2.5 group">
+                <a href="/" class="flex items-center gap-2 group">
                     {% if logo_url %}
-                    <img src="{{ logo_url }}" alt="{{ config.APP_NAME }}" class="h-8 sm:h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105" onerror="this.style.display='none';">
+                    <img src="{{ logo_url }}" alt="{{ config.APP_NAME }}" class="h-7 sm:h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105" onerror="this.style.display='none';">
                     {% else %}
-                    <img src="{{ url_for('static', filename='img/branding/logo.png') }}" alt="{{ config.APP_NAME }}" class="h-8 sm:h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105" onerror="this.style.display='none';">
+                    <img src="{{ url_for('static', filename='img/branding/logo.png') }}" alt="{{ config.APP_NAME }}" class="h-7 sm:h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105" onerror="this.style.display='none';">
                     {% endif %}
-                    <span class="font-black text-lg sm:text-xl tracking-wider text-navy-950 dark:text-white uppercase">
+                    <span class="font-black text-base sm:text-lg tracking-wider text-navy-950 dark:text-white uppercase">
                         {{ config.APP_NAME }}
                     </span>
                 </a>
 
                 <!-- Desktop Navigation -->
-                <nav class="hidden md:flex items-center gap-8">
+                <nav class="hidden md:flex items-center gap-6">
                     <a href="/"
                         class="hover-border relative py-2 text-sm uppercase tracking-wider font-medium {% if request.path == '/' %}active text-navy-950 dark:text-white font-semibold{% else %}text-navy-500 hover:text-navy-950 dark:text-gray-400 dark:hover:text-white{% endif %} transition-colors">Home</a>
                     <a href="/players"
@@ -162,10 +162,10 @@
                 </nav>
 
                 <!-- Actions: Theme Toggle + Mobile Menu -->
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2.5">
                     <!-- Theme Toggle Button -->
                     <button id="theme-toggle"
-                        class="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-navy-900 dark:hover:bg-navy-800 text-gray-500 dark:text-gray-400 transition-all cursor-pointer"
+                        class="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-navy-900 dark:hover:bg-navy-800 text-gray-500 dark:text-gray-400 transition-all cursor-pointer"
                         aria-label="Toggle Theme">
                         <!-- Sun icon (visible in dark mode) -->
                         <svg id="theme-toggle-sun" class="hidden w-5 h-5" fill="none" stroke="currentColor"
@@ -183,7 +183,7 @@
 
                     <!-- Mobile Menu Toggle -->
                     <button id="mobile-menu-toggle"
-                        class="md:hidden p-2 rounded-xl text-navy-800 dark:text-white hover:bg-gray-100 dark:hover:bg-navy-900 transition-colors cursor-pointer"
+                        class="md:hidden p-1.5 rounded-lg text-navy-800 dark:text-white hover:bg-gray-100 dark:hover:bg-navy-900 transition-colors cursor-pointer"
                         aria-label="Toggle Menu">
                         <svg id="menu-icon-open" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
                             viewBox="0 0 24 24">
@@ -200,17 +200,17 @@
 
         <!-- Mobile Navigation -->
         <div id="mobile-menu"
-            class="hidden md:hidden border-t border-gray-100 dark:border-navy-900 bg-white/95 dark:bg-navy-950/95 backdrop-blur-md px-4 py-4 space-y-1">
+            class="hidden md:hidden border-t border-gray-100 dark:border-navy-900 bg-white/95 dark:bg-navy-950/95 backdrop-blur-md px-3 py-3 space-y-0.5">
             <a href="/"
-                class="block px-4 py-3 rounded-xl text-sm uppercase tracking-wider font-semibold {% if request.path == '/' %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">Home</a>
+                class="block px-3 py-2.5 rounded-lg text-sm uppercase tracking-wider font-semibold {% if request.path == '/' %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">Home</a>
             <a href="/players"
-                class="block px-4 py-3 rounded-xl text-sm uppercase tracking-wider font-semibold {% if '/players' in request.path %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">Players</a>
+                class="block px-3 py-2.5 rounded-lg text-sm uppercase tracking-wider font-semibold {% if '/players' in request.path %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">Players</a>
             <a href="/teams"
-                class="block px-4 py-3 rounded-xl text-sm uppercase tracking-wider font-semibold {% if '/teams' in request.path and '/champions' not in request.path %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">Teams</a>
+                class="block px-3 py-2.5 rounded-lg text-sm uppercase tracking-wider font-semibold {% if '/teams' in request.path and '/champions' not in request.path %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">Teams</a>
             <a href="/champions"
-                class="block px-4 py-3 rounded-xl text-sm uppercase tracking-wider font-semibold {% if '/champions' in request.path %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">🏆 Champions</a>
+                class="block px-3 py-2.5 rounded-lg text-sm uppercase tracking-wider font-semibold {% if '/champions' in request.path %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">🏆 Champions</a>
             <a href="/dashboard"
-                class="block px-4 py-3 rounded-xl text-sm uppercase tracking-wider font-semibold {% if '/dashboard' in request.path %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">My
+                class="block px-3 py-2.5 rounded-lg text-sm uppercase tracking-wider font-semibold {% if '/dashboard' in request.path %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">My
                 Squad</a>
         </div>
     </header>
@@ -232,10 +232,10 @@
 
         <!-- Modal Content -->
         <div id="modal-content"
-            class="relative w-full max-w-lg bg-white dark:bg-navy-900 rounded-3xl shadow-2xl overflow-hidden opacity-0 scale-95 transition-all duration-300">
+            class="relative w-full max-w-md bg-white dark:bg-navy-900 rounded-2xl shadow-2xl overflow-hidden opacity-0 scale-95 transition-all duration-300">
             <!-- Close button -->
             <button id="modal-close"
-                class="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/80 dark:bg-navy-800/80 hover:bg-white dark:hover:bg-navy-800 text-gray-500 dark:text-gray-400 transition-all cursor-pointer">
+                class="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-white/80 dark:bg-navy-800/80 hover:bg-white dark:hover:bg-navy-800 text-gray-500 dark:text-gray-400 transition-all cursor-pointer">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -250,21 +250,21 @@
             </div>
 
             <!-- Player Info -->
-            <div class="p-6 sm:p-8">
-                <h2 id="modal-player-name" class="text-2xl sm:text-3xl font-extrabold text-navy-900 dark:text-white">
+            <div class="p-5 sm:p-6">
+                <h2 id="modal-player-name" class="text-xl sm:text-2xl font-extrabold text-navy-900 dark:text-white">
                 </h2>
 
-                <div class="flex items-center gap-3 mt-3">
-                    <span id="modal-player-nationality" class="text-gray-500 dark:text-gray-400 text-lg"></span>
+                <div class="flex items-center gap-2.5 mt-2.5">
+                    <span id="modal-player-nationality" class="text-gray-500 dark:text-gray-400 text-base"></span>
                 </div>
 
-                <div class="flex flex-wrap gap-3 mt-5">
-                    <div class="px-4 py-2 rounded-xl bg-navy-100 dark:bg-navy-800">
+                <div class="flex flex-wrap gap-2.5 mt-4">
+                    <div class="px-3 py-1.5 rounded-lg bg-navy-100 dark:bg-navy-800">
                         <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Position</span>
                         <p id="modal-player-primary" class="font-bold text-navy-900 dark:text-white mt-0.5"></p>
                     </div>
                     <div id="modal-secondary-container"
-                        class="px-4 py-2 rounded-xl bg-gold-50 dark:bg-gold-500/10 hidden">
+                        class="px-3 py-1.5 rounded-lg bg-gold-50 dark:bg-gold-500/10 hidden">
                         <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Secondary</span>
                         <p id="modal-player-secondary" class="font-bold text-gold-700 dark:text-gold-400 mt-0.5"></p>
                     </div>
@@ -277,7 +277,7 @@
          FOOTER
          ════════════════════════════════════════════ -->
     <footer class="border-t border-gray-200 dark:border-navy-800/50">
-        <div class="container-main py-10">
+        <div class="container-main py-8">
             <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <p class="text-sm text-gray-400 dark:text-gray-500">
                     &copy; 2026 {{ config.APP_NAME }}

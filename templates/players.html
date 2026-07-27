@@ -5,19 +5,19 @@
 {% block content %}
 
 <!-- Page Header -->
-<section class="bg-gradient-to-b from-navy-50 to-white dark:from-navy-900 dark:to-navy-950 py-16 sm:py-20">
+<section class="bg-gradient-to-b from-navy-50 to-white dark:from-navy-900 dark:to-navy-950 py-12 sm:py-14">
     <div class="container-main">
         <div class="max-w-2xl animate-fade-in-up">
             <span class="text-gold-500 text-sm font-semibold uppercase tracking-widest">Database</span>
-            <h1 class="text-4xl sm:text-5xl font-extrabold text-navy-900 dark:text-white mt-2">Player Database</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-3 text-lg">Browse and search across all tournament players</p>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-navy-900 dark:text-white mt-2">Player Database</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-2.5 text-base">Browse and search across all tournament players</p>
         </div>
     </div>
 </section>
 
 <!-- Search & Filters -->
 <section class="container-main -mt-6 relative z-10">
-    <div class="bg-white dark:bg-navy-900 rounded-2xl border border-gray-200/50 dark:border-navy-800/50 shadow-lg shadow-navy-900/5 dark:shadow-none p-4 sm:p-6">
+    <div class="bg-white dark:bg-navy-900 rounded-2xl border border-gray-200/50 dark:border-navy-800/50 shadow-lg shadow-navy-900/5 dark:shadow-none p-3 sm:p-5">
         <div class="flex flex-col lg:flex-row gap-4">
             <!-- Search Input -->
             <div class="flex-1 relative">
@@ -26,26 +26,26 @@
                 </svg>
                 <input id="player-search" type="text" placeholder="Search by name, nationality, position..."
                        value="{{ initial_query }}"
-                       class="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-navy-900 dark:text-white placeholder-gray-400 outline-none focus:border-gold-500 dark:focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition-all">
+                       class="w-full pl-12 pr-4 py-2.5 rounded-xl bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-navy-900 dark:text-white placeholder-gray-400 outline-none focus:border-gold-500 dark:focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition-all">
             </div>
 
             <!-- Filter Dropdowns -->
             <div class="flex flex-col sm:flex-row gap-3">
-                <select id="filter-nationality" class="px-4 py-3 rounded-xl bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-navy-900 dark:text-white outline-none focus:border-gold-500 transition-all text-sm cursor-pointer">
+                <select id="filter-nationality" class="px-3.5 py-2.5 rounded-xl bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-navy-900 dark:text-white outline-none focus:border-gold-500 transition-all text-sm cursor-pointer">
                     <option value="">All Nations</option>
                     {% for nat in nationalities %}
                     <option value="{{ nat }}">{{ nat }}</option>
                     {% endfor %}
                 </select>
 
-                <select id="filter-primary" class="px-4 py-3 rounded-xl bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-navy-900 dark:text-white outline-none focus:border-gold-500 transition-all text-sm cursor-pointer">
+                <select id="filter-primary" class="px-3.5 py-2.5 rounded-xl bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-navy-900 dark:text-white outline-none focus:border-gold-500 transition-all text-sm cursor-pointer">
                     <option value="">All Positions</option>
                     {% for pos in positions %}
                     <option value="{{ pos }}">{{ pos }}</option>
                     {% endfor %}
                 </select>
 
-                <select id="filter-secondary" class="px-4 py-3 rounded-xl bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-navy-900 dark:text-white outline-none focus:border-gold-500 transition-all text-sm cursor-pointer">
+                <select id="filter-secondary" class="px-3.5 py-2.5 rounded-xl bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-navy-900 dark:text-white outline-none focus:border-gold-500 transition-all text-sm cursor-pointer">
                     <option value="">Secondary Position</option>
                     {% for pos in secondary_positions %}
                     <option value="{{ pos }}">{{ pos }}</option>
@@ -57,13 +57,13 @@
 </section>
 
 <!-- Player Count -->
-<div class="container-main mt-8 mb-4">
+<div class="container-main mt-6 mb-3">
     <p id="player-count" class="text-sm text-gray-400 dark:text-gray-500 font-medium">{{ players|length }} player{{ 's' if players|length != 1 }}</p>
 </div>
 
 <!-- Player Grid -->
-<section class="container-main pb-20">
-    <div id="player-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5">
+<section class="container-main pb-14">
+    <div id="player-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
         {% for player in players %}
         <div class="player-card group cursor-pointer" onclick="openPlayerModal({{ player.id }})">
             <div class="relative overflow-hidden rounded-2xl bg-gray-50 dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50 hover:border-gold-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-navy-900/5 dark:hover:shadow-gold-500/5 hover:-translate-y-1">
@@ -74,8 +74,8 @@
                          onerror="this.src='{{ default_player_image_url }}'" loading="lazy">
                 </div>
 
-                <div class="p-3 sm:p-4">
-                    <h3 class="font-bold text-navy-900 dark:text-white text-sm sm:text-base truncate">{{ player.name }}</h3>
+                <div class="p-2.5 sm:p-3">
+                    <h3 class="font-bold text-navy-900 dark:text-white text-xs sm:text-sm truncate">{{ player.name }}</h3>
                     <div class="flex items-center gap-1.5 mt-1">
                         <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{{ flag_img(flags.get(player.nationality, ''), 16) }} {{ player.nationality }}</span>
                     </div>

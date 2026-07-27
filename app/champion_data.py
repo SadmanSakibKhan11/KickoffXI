@@ -38,9 +38,9 @@ CHAMPION_DATA = {
         "wins": 7,
         "draws": 1,
         "losses": 0,
-        "goals_scored": 18,
-        "goals_conceded": 4,
-        "clean_sheets": 4,
+        "goals_scored": 14,
+        "goals_conceded": 1,
+        "clean_sheets": 7,
     },
 
     # ─── Starting XI ─────────────────────────────────────────
@@ -91,7 +91,7 @@ CHAMPION_DATA = {
             "awards": [],
         },
         {
-            "name": "Aymeric Laporte",
+            "name": "Pau Cubarsí",
             "number": 4,
             "position": "CB",
             "nationality": "Spain",
@@ -105,10 +105,10 @@ CHAMPION_DATA = {
                 "minutes": 720,
                 "avg_rating": 7.3,
             },
-            "awards": [],
+            "awards": ["Best Young Player"],
         },
         {
-            "name": "Pau Cubarsí",
+            "name": "Aymeric Laporte",
             "number": 5,
             "position": "CB",
             "nationality": "Spain",
@@ -122,7 +122,7 @@ CHAMPION_DATA = {
                 "minutes": 720,
                 "avg_rating": 7.4,
             },
-            "awards": ["Best Young Player"],
+            "awards": [],
         },
         {
             "name": "Marc Cucurella",
@@ -159,7 +159,7 @@ CHAMPION_DATA = {
             "awards": ["Golden Ball"],
         },
         {
-            "name": "Pedri",
+            "name": "Fabian Ruiz",
             "number": 8,
             "position": "CM",
             "nationality": "Spain",
@@ -176,7 +176,7 @@ CHAMPION_DATA = {
             "awards": [],
         },
         {
-            "name": "Nico Williams",
+            "name": "Alex Baena",
             "number": 11,
             "position": "LW",
             "nationality": "Spain",
@@ -207,7 +207,7 @@ CHAMPION_DATA = {
                 "minutes": 590,
                 "avg_rating": 7.7,
             },
-            "awards": ["Golden Boot"],
+            "awards": [],
         },
         {
             "name": "Lamine Yamal",
@@ -293,9 +293,9 @@ CHAMPION_DATA = {
             "awards": [],
         },
         {
-            "name": "Martín Zubimendi",
-            "number": 16,
-            "position": "CDM",
+            "name": "Nico Williams",
+            "number": 11,
+            "position": "LW",
             "nationality": "Spain",
             "is_captain": False,
             "stats": {
@@ -308,8 +308,8 @@ CHAMPION_DATA = {
             "awards": [],
         },
         {
-            "name": "Gavi",
-            "number": 17,
+            "name": "Pedri",
+            "number": 20,
             "position": "CM",
             "nationality": "Spain",
             "is_captain": False,

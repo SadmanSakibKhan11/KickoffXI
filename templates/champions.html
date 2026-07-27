@@ -3,7 +3,8 @@
 {% block title %}{{ config.APP_NAME }} — 🏆 Champions{% endblock %}
 
 {% block head %}
-<meta name="description" content="FIFA World Cup 2026 Champions — {{ champion.nation.name }}. The official champions showcase on {{ config.APP_NAME }}.">
+<meta name="description"
+    content="FIFA World Cup 2026 Champions — {{ champion.nation.name }}. The official champions showcase on {{ config.APP_NAME }}.">
 {% endblock %}
 
 {% block content %}
@@ -11,102 +12,116 @@
 <!-- ════════════════════════════════════════════
      HERO SECTION
      ════════════════════════════════════════════ -->
-<section class="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+<section class="relative min-h-[75vh] flex items-center justify-center overflow-hidden">
     <!-- Background Image -->
     <div class="absolute inset-0">
         <div class="w-full h-full champion-hero-bg"
-             style="background-image: url('{{ url_for('static', filename='img/' + champion.hero_image) }}');"></div>
+            style="background-image: url('{{ url_for('static', filename='img/' + champion.hero_image) }}');"></div>
         <!-- Cinematic Dark Overlay -->
         <div class="absolute inset-0 bg-gradient-to-b from-navy-950/80 via-navy-950/60 to-navy-950/95"></div>
     </div>
 
     <!-- Hero Content -->
-    <div class="relative z-10 container-main text-center py-20">
+    <div class="relative z-10 container-main text-center py-14">
         <div class="max-w-3xl mx-auto animate-fade-in-up">
 
             <!-- Trophy Icon -->
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gold-500/15 border border-gold-500/25 mb-8">
-                <svg class="w-10 h-10 text-gold-400" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M5 3h14c.6 0 1 .4 1 1v2c0 3.1-2.3 5.8-5.3 6.2-.5 1.5-1.5 2.7-2.7 3.5V19h3a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2h3v-3.3c-1.2-.8-2.2-2-2.7-3.5C6.3 11.8 4 9.1 4 6V4c0-.6.4-1 1-1zm1 2v1c0 2.1 1.5 3.8 3.4 4.2.2-.8.5-1.5.9-2.2H6V4zm12 2h-4.3c.4.7.7 1.4.9 2.2C16.5 8.8 18 7.1 18 5V4z"/>
+            <div
+                class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gold-500/15 border border-gold-500/25 mb-6">
+                <svg class="w-8 h-8 text-gold-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                        d="M5 3h14c.6 0 1 .4 1 1v2c0 3.1-2.3 5.8-5.3 6.2-.5 1.5-1.5 2.7-2.7 3.5V19h3a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2h3v-3.3c-1.2-.8-2.2-2-2.7-3.5C6.3 11.8 4 9.1 4 6V4c0-.6.4-1 1-1zm1 2v1c0 2.1 1.5 3.8 3.4 4.2.2-.8.5-1.5.9-2.2H6V4zm12 2h-4.3c.4.7.7 1.4.9 2.2C16.5 8.8 18 7.1 18 5V4z" />
                 </svg>
             </div>
 
             <!-- Champion Badge -->
-            <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gold-500/20 border border-gold-500/30 mb-6">
+            <div
+                class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-500/20 border border-gold-500/30 mb-5">
                 <span class="w-2 h-2 rounded-full bg-gold-400 animate-pulse"></span>
-                <span class="text-gold-300 text-sm font-semibold uppercase tracking-widest">World Cup 2026 Champions</span>
+                <span class="text-gold-300 text-xs font-semibold uppercase tracking-widest">World Cup 2026
+                    Champions</span>
             </div>
 
             <!-- Flag + Nation Name -->
-            <div class="mb-4">
-                <span class="inline-block">{{ flag_img(champion.nation.flag_code, 64) }}</span>
+            <div class="mb-3">
+                <span class="inline-block">{{ flag_img(champion.nation.flag_code, 56) }}</span>
             </div>
-            <h1 class="text-6xl sm:text-7xl lg:text-8xl font-black text-white tracking-tight uppercase">
+            <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight uppercase">
                 {{ champion.nation.name }}
             </h1>
 
             <!-- Subtitle -->
-            <p class="text-xl sm:text-2xl text-gold-300/80 mt-4 font-light italic tracking-wide">
+            <p class="text-lg sm:text-xl text-gold-300/80 mt-3 font-light italic tracking-wide">
                 "{{ champion.nation.subtitle }}"
             </p>
 
             <!-- Coach -->
-            <p class="text-gray-400 mt-3 text-sm uppercase tracking-widest">
+            <p class="text-gray-400 mt-2 text-xs uppercase tracking-widest">
                 Coach: {{ champion.nation.coach }}
             </p>
 
             <!-- Hero Stats -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-14 max-w-2xl mx-auto">
-                <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-all duration-300">
-                    <p class="text-3xl sm:text-4xl font-black text-white">{{ champion.stats.matches_played }}</p>
-                    <p class="text-xs text-gray-400 uppercase tracking-widest mt-1.5 font-medium">Matches</p>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-10 max-w-2xl mx-auto">
+                <div
+                    class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-all duration-300">
+                    <p class="text-2xl sm:text-3xl font-black text-white">{{ champion.stats.matches_played }}</p>
+                    <p class="text-[11px] text-gray-400 uppercase tracking-widest mt-1 font-medium">Matches</p>
                 </div>
-                <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-all duration-300">
-                    <p class="text-3xl sm:text-4xl font-black text-gold-400">{{ champion.stats.wins }}</p>
-                    <p class="text-xs text-gray-400 uppercase tracking-widest mt-1.5 font-medium">Wins</p>
+                <div
+                    class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-all duration-300">
+                    <p class="text-2xl sm:text-3xl font-black text-gold-400">{{ champion.stats.wins }}</p>
+                    <p class="text-[11px] text-gray-400 uppercase tracking-widest mt-1 font-medium">Wins</p>
                 </div>
-                <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-all duration-300">
-                    <p class="text-3xl sm:text-4xl font-black text-white">{{ champion.stats.goals_scored }}</p>
-                    <p class="text-xs text-gray-400 uppercase tracking-widest mt-1.5 font-medium">Goals</p>
+                <div
+                    class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-all duration-300">
+                    <p class="text-2xl sm:text-3xl font-black text-white">{{ champion.stats.goals_scored }}</p>
+                    <p class="text-[11px] text-gray-400 uppercase tracking-widest mt-1 font-medium">Goals</p>
                 </div>
-                <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-all duration-300">
-                    <p class="text-3xl sm:text-4xl font-black text-white">{{ champion.stats.clean_sheets }}</p>
-                    <p class="text-xs text-gray-400 uppercase tracking-widest mt-1.5 font-medium">Clean Sheets</p>
+                <div
+                    class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-all duration-300">
+                    <p class="text-2xl sm:text-3xl font-black text-white">{{ champion.stats.clean_sheets }}</p>
+                    <p class="text-[11px] text-gray-400 uppercase tracking-widest mt-1 font-medium">Clean Sheets</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Bottom fade -->
-    <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white dark:from-navy-950 to-transparent"></div>
+    <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white dark:from-navy-950 to-transparent">
+    </div>
 </section>
 
 
 <!-- ════════════════════════════════════════════
      TOURNAMENT SUMMARY
      ════════════════════════════════════════════ -->
-<section class="container-main py-20">
-    <div class="text-center mb-12 champ-scroll-animate">
-        <span class="text-gold-500 text-sm font-semibold uppercase tracking-widest">Statistics</span>
-        <h2 class="text-3xl sm:text-4xl font-extrabold text-navy-900 dark:text-white mt-2">Tournament Summary</h2>
-        <p class="text-gray-500 dark:text-gray-400 mt-3 max-w-lg mx-auto">A dominant campaign from start to finish</p>
+<section class="container-main py-14">
+    <div class="text-center mb-9 champ-scroll-animate">
+        <span class="text-gold-500 text-xs font-semibold uppercase tracking-widest">Statistics</span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-navy-900 dark:text-white mt-1.5">Tournament Summary</h2>
+        <p class="text-gray-500 dark:text-gray-400 mt-2 max-w-lg mx-auto text-sm">A dominant campaign from start to
+            finish</p>
     </div>
 
-    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
         {% set stat_items = [
-            ('Played', champion.stats.matches_played, 'navy'),
-            ('Wins', champion.stats.wins, 'gold'),
-            ('Draws', champion.stats.draws, 'navy'),
-            ('Losses', champion.stats.losses, 'navy'),
-            ('Scored', champion.stats.goals_scored, 'gold'),
-            ('Conceded', champion.stats.goals_conceded, 'navy'),
-            ('Clean Sheets', champion.stats.clean_sheets, 'gold')
+        ('Played', champion.stats.matches_played, 'navy'),
+        ('Wins', champion.stats.wins, 'gold'),
+        ('Draws', champion.stats.draws, 'navy'),
+        ('Losses', champion.stats.losses, 'navy'),
+        ('Scored', champion.stats.goals_scored, 'gold'),
+        ('Conceded', champion.stats.goals_conceded, 'navy'),
+        ('Clean Sheets', champion.stats.clean_sheets, 'gold')
         ] %}
         {% for label, value, color in stat_items %}
         <div class="champ-scroll-animate">
-            <div class="text-center p-5 sm:p-6 rounded-2xl bg-white dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50 hover:border-gold-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-navy-900/5 dark:hover:shadow-gold-500/5 hover:-translate-y-1">
-                <p class="text-3xl sm:text-4xl font-black {% if color == 'gold' %}text-gold-500 dark:text-gold-400{% else %}text-navy-900 dark:text-white{% endif %}">{{ value }}</p>
-                <p class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-2 font-medium">{{ label }}</p>
+            <div
+                class="text-center p-4 sm:p-5 rounded-2xl bg-white dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50 hover:border-gold-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-navy-900/5 dark:hover:shadow-gold-500/5 hover:-translate-y-1">
+                <p
+                    class="text-2xl sm:text-3xl font-black {% if color == 'gold' %}text-gold-500 dark:text-gold-400{% else %}text-navy-900 dark:text-white{% endif %}">
+                    {{ value }}</p>
+                <p class="text-[11px] text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-1.5 font-medium">{{
+                    label }}</p>
             </div>
         </div>
         {% endfor %}
@@ -117,34 +132,37 @@
 <!-- ════════════════════════════════════════════
      STARTING XI — FORMATION PITCH
      ════════════════════════════════════════════ -->
-<section class="bg-gray-50 dark:bg-navy-900/50 py-20">
+<section class="bg-gray-50 dark:bg-navy-900/50 py-14">
     <div class="container-main">
-        <div class="text-center mb-12 champ-scroll-animate">
-            <span class="text-gold-500 text-sm font-semibold uppercase tracking-widest">Formation</span>
-            <h2 class="text-3xl sm:text-4xl font-extrabold text-navy-900 dark:text-white mt-2">Starting XI</h2>
-            <p class="text-gray-500 dark:text-gray-400 mt-3 max-w-lg mx-auto">The championship-winning lineup</p>
+        <div class="text-center mb-9 champ-scroll-animate">
+            <span class="text-gold-500 text-xs font-semibold uppercase tracking-widest">Formation</span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-navy-900 dark:text-white mt-1.5">Starting XI</h2>
+            <p class="text-gray-500 dark:text-gray-400 mt-2 max-w-lg mx-auto text-sm">The championship-winning lineup
+            </p>
         </div>
 
         <!-- Football Pitch -->
-        <div class="champion-pitch p-6 sm:p-10 lg:p-14 champ-scroll-animate">
+        <div class="champion-pitch p-5 sm:p-8 lg:p-10 champ-scroll-animate">
             <div class="champion-pitch-stripes"></div>
 
-            <div class="relative z-10 space-y-6 sm:space-y-10">
+            <div class="relative z-10 space-y-8 sm:space-y-12">
 
                 <!-- Row 1: Striker(s) -->
-                {% set row1 = champion.starting_xi | selectattr('formation_row', 'equalto', 1) | sort(attribute='formation_order') | list %}
+                {% set row1 = champion.starting_xi | selectattr('formation_row', 'equalto', 1) |
+                sort(attribute='formation_order') | list %}
                 {% if row1 %}
                 <div class="flex justify-center gap-4 sm:gap-8 lg:gap-12">
                     {% for player in row1 %}
-                    <div class="champion-pitch-card group w-[100px] sm:w-[130px] lg:w-[150px]"
-                         onclick="openChampionModal({{ loop.index0 + (champion.starting_xi | rejectattr('formation_row', 'equalto', 1) | list | length) }}, 'xi')"
-                         data-xi-index="{{ champion.starting_xi.index(player) }}">
-                        <div class="relative overflow-hidden rounded-xl bg-gray-100 dark:bg-navy-900 border border-white/10 hover:border-gold-500/40 transition-all duration-300 hover:shadow-xl hover:shadow-gold-500/10">
+                    <div class="champion-pitch-card group w-[85px] sm:w-[115px] lg:w-[130px]"
+                        onclick="openChampionModal({{ loop.index0 + (champion.starting_xi | rejectattr('formation_row', 'equalto', 1) | list | length) }}, 'xi')"
+                        data-xi-index="{{ champion.starting_xi.index(player) }}">
+                        <div
+                            class="relative overflow-hidden rounded-xl bg-gray-100 dark:bg-navy-900 border border-white/10 hover:border-gold-500/40 transition-all duration-300 hover:shadow-xl hover:shadow-gold-500/10">
                             <div class="aspect-[3/4] player-card-img">
                                 <img src="{{ player.frame_image_url }}" alt="" class="frame-layer"
-                                     onerror="this.src='{{ default_frame_image_url }}'">
+                                    onerror="this.src='{{ default_frame_image_url }}'">
                                 <img src="{{ player.player_image_url }}" alt="{{ player.name }}" class="player-layer"
-                                     onerror="this.src='{{ default_player_image_url }}'" loading="lazy">
+                                    onerror="this.src='{{ default_player_image_url }}'" loading="lazy">
                             </div>
                             <div class="p-2 sm:p-3 bg-navy-950/60 backdrop-blur-sm">
                                 <h3 class="font-bold text-white text-xs sm:text-sm truncate">
@@ -152,7 +170,9 @@
                                     {{ player.name }}
                                 </h3>
                                 <div class="mt-1">
-                                    <span class="inline-block px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-white/80">{{ player.position }}</span>
+                                    <span
+                                        class="inline-block px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-white/80">{{
+                                        player.position }}</span>
                                 </div>
                             </div>
                         </div>
@@ -162,18 +182,20 @@
                 {% endif %}
 
                 <!-- Row 2: Attacking Mid / Wings -->
-                {% set row2 = champion.starting_xi | selectattr('formation_row', 'equalto', 2) | sort(attribute='formation_order') | list %}
+                {% set row2 = champion.starting_xi | selectattr('formation_row', 'equalto', 2) |
+                sort(attribute='formation_order') | list %}
                 {% if row2 %}
                 <div class="flex justify-center gap-4 sm:gap-8 lg:gap-16">
                     {% for player in row2 %}
-                    <div class="champion-pitch-card group w-[100px] sm:w-[130px] lg:w-[150px]"
-                         onclick="openChampionModal({{ champion.starting_xi.index(player) }}, 'xi')">
-                        <div class="relative overflow-hidden rounded-xl bg-gray-100 dark:bg-navy-900 border border-white/10 hover:border-gold-500/40 transition-all duration-300 hover:shadow-xl hover:shadow-gold-500/10">
+                    <div class="champion-pitch-card group w-[85px] sm:w-[115px] lg:w-[130px]"
+                        onclick="openChampionModal({{ champion.starting_xi.index(player) }}, 'xi')">
+                        <div
+                            class="relative overflow-hidden rounded-xl bg-gray-100 dark:bg-navy-900 border border-white/10 hover:border-gold-500/40 transition-all duration-300 hover:shadow-xl hover:shadow-gold-500/10">
                             <div class="aspect-[3/4] player-card-img">
                                 <img src="{{ player.frame_image_url }}" alt="" class="frame-layer"
-                                     onerror="this.src='{{ default_frame_image_url }}'">
+                                    onerror="this.src='{{ default_frame_image_url }}'">
                                 <img src="{{ player.player_image_url }}" alt="{{ player.name }}" class="player-layer"
-                                     onerror="this.src='{{ default_player_image_url }}'" loading="lazy">
+                                    onerror="this.src='{{ default_player_image_url }}'" loading="lazy">
                             </div>
                             <div class="p-2 sm:p-3 bg-navy-950/60 backdrop-blur-sm">
                                 <h3 class="font-bold text-white text-xs sm:text-sm truncate">
@@ -181,7 +203,9 @@
                                     {{ player.name }}
                                 </h3>
                                 <div class="mt-1">
-                                    <span class="inline-block px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-white/80">{{ player.position }}</span>
+                                    <span
+                                        class="inline-block px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-white/80">{{
+                                        player.position }}</span>
                                 </div>
                             </div>
                         </div>
@@ -191,18 +215,20 @@
                 {% endif %}
 
                 <!-- Row 3: Central Midfield -->
-                {% set row3 = champion.starting_xi | selectattr('formation_row', 'equalto', 3) | sort(attribute='formation_order') | list %}
+                {% set row3 = champion.starting_xi | selectattr('formation_row', 'equalto', 3) |
+                sort(attribute='formation_order') | list %}
                 {% if row3 %}
-                <div class="flex justify-center gap-4 sm:gap-8 lg:gap-16">
+                <div class="flex justify-center gap-6 sm:gap-10 lg:gap-16">
                     {% for player in row3 %}
-                    <div class="champion-pitch-card group w-[100px] sm:w-[130px] lg:w-[150px]"
-                         onclick="openChampionModal({{ champion.starting_xi.index(player) }}, 'xi')">
-                        <div class="relative overflow-hidden rounded-xl bg-gray-100 dark:bg-navy-900 border border-white/10 hover:border-gold-500/40 transition-all duration-300 hover:shadow-xl hover:shadow-gold-500/10">
+                    <div class="champion-pitch-card group w-[85px] sm:w-[115px] lg:w-[130px]"
+                        onclick="openChampionModal({{ champion.starting_xi.index(player) }}, 'xi')">
+                        <div
+                            class="relative overflow-hidden rounded-xl bg-gray-100 dark:bg-navy-900 border border-white/10 hover:border-gold-500/40 transition-all duration-300 hover:shadow-xl hover:shadow-gold-500/10">
                             <div class="aspect-[3/4] player-card-img">
                                 <img src="{{ player.frame_image_url }}" alt="" class="frame-layer"
-                                     onerror="this.src='{{ default_frame_image_url }}'">
+                                    onerror="this.src='{{ default_frame_image_url }}'">
                                 <img src="{{ player.player_image_url }}" alt="{{ player.name }}" class="player-layer"
-                                     onerror="this.src='{{ default_player_image_url }}'" loading="lazy">
+                                    onerror="this.src='{{ default_player_image_url }}'" loading="lazy">
                             </div>
                             <div class="p-2 sm:p-3 bg-navy-950/60 backdrop-blur-sm">
                                 <h3 class="font-bold text-white text-xs sm:text-sm truncate">
@@ -210,7 +236,9 @@
                                     {{ player.name }}
                                 </h3>
                                 <div class="mt-1">
-                                    <span class="inline-block px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-white/80">{{ player.position }}</span>
+                                    <span
+                                        class="inline-block px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-white/80">{{
+                                        player.position }}</span>
                                 </div>
                             </div>
                         </div>
@@ -220,18 +248,20 @@
                 {% endif %}
 
                 <!-- Row 4: Defense -->
-                {% set row4 = champion.starting_xi | selectattr('formation_row', 'equalto', 4) | sort(attribute='formation_order') | list %}
+                {% set row4 = champion.starting_xi | selectattr('formation_row', 'equalto', 4) |
+                sort(attribute='formation_order') | list %}
                 {% if row4 %}
                 <div class="flex justify-center gap-3 sm:gap-6 lg:gap-10">
                     {% for player in row4 %}
-                    <div class="champion-pitch-card group w-[85px] sm:w-[120px] lg:w-[140px]"
-                         onclick="openChampionModal({{ champion.starting_xi.index(player) }}, 'xi')">
-                        <div class="relative overflow-hidden rounded-xl bg-gray-100 dark:bg-navy-900 border border-white/10 hover:border-gold-500/40 transition-all duration-300 hover:shadow-xl hover:shadow-gold-500/10">
+                    <div class="champion-pitch-card group w-[75px] sm:w-[100px] lg:w-[120px]"
+                        onclick="openChampionModal({{ champion.starting_xi.index(player) }}, 'xi')">
+                        <div
+                            class="relative overflow-hidden rounded-xl bg-gray-100 dark:bg-navy-900 border border-white/10 hover:border-gold-500/40 transition-all duration-300 hover:shadow-xl hover:shadow-gold-500/10">
                             <div class="aspect-[3/4] player-card-img">
                                 <img src="{{ player.frame_image_url }}" alt="" class="frame-layer"
-                                     onerror="this.src='{{ default_frame_image_url }}'">
+                                    onerror="this.src='{{ default_frame_image_url }}'">
                                 <img src="{{ player.player_image_url }}" alt="{{ player.name }}" class="player-layer"
-                                     onerror="this.src='{{ default_player_image_url }}'" loading="lazy">
+                                    onerror="this.src='{{ default_player_image_url }}'" loading="lazy">
                             </div>
                             <div class="p-2 sm:p-3 bg-navy-950/60 backdrop-blur-sm">
                                 <h3 class="font-bold text-white text-xs sm:text-sm truncate">
@@ -239,7 +269,9 @@
                                     {{ player.name }}
                                 </h3>
                                 <div class="mt-1">
-                                    <span class="inline-block px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-white/80">{{ player.position }}</span>
+                                    <span
+                                        class="inline-block px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-white/80">{{
+                                        player.position }}</span>
                                 </div>
                             </div>
                         </div>
@@ -249,23 +281,27 @@
                 {% endif %}
 
                 <!-- Row 5: Goalkeeper -->
-                {% set row5 = champion.starting_xi | selectattr('formation_row', 'equalto', 5) | sort(attribute='formation_order') | list %}
+                {% set row5 = champion.starting_xi | selectattr('formation_row', 'equalto', 5) |
+                sort(attribute='formation_order') | list %}
                 {% if row5 %}
                 <div class="flex justify-center">
                     {% for player in row5 %}
-                    <div class="champion-pitch-card group w-[100px] sm:w-[130px] lg:w-[150px]"
-                         onclick="openChampionModal({{ champion.starting_xi.index(player) }}, 'xi')">
-                        <div class="relative overflow-hidden rounded-xl bg-gray-100 dark:bg-navy-900 border border-gold-500/20 hover:border-gold-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-gold-500/15">
+                    <div class="champion-pitch-card group w-[85px] sm:w-[115px] lg:w-[130px]"
+                        onclick="openChampionModal({{ champion.starting_xi.index(player) }}, 'xi')">
+                        <div
+                            class="relative overflow-hidden rounded-xl bg-gray-100 dark:bg-navy-900 border border-gold-500/20 hover:border-gold-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-gold-500/15">
                             <div class="aspect-[3/4] player-card-img">
                                 <img src="{{ player.frame_image_url }}" alt="" class="frame-layer"
-                                     onerror="this.src='{{ default_frame_image_url }}'">
+                                    onerror="this.src='{{ default_frame_image_url }}'">
                                 <img src="{{ player.player_image_url }}" alt="{{ player.name }}" class="player-layer"
-                                     onerror="this.src='{{ default_player_image_url }}'" loading="lazy">
+                                    onerror="this.src='{{ default_player_image_url }}'" loading="lazy">
                             </div>
                             <div class="p-2 sm:p-3 bg-navy-950/60 backdrop-blur-sm">
                                 <h3 class="font-bold text-white text-xs sm:text-sm truncate">{{ player.name }}</h3>
                                 <div class="mt-1">
-                                    <span class="inline-block px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-gold-500/20 text-gold-300">{{ player.position }}</span>
+                                    <span
+                                        class="inline-block px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-gold-500/20 text-gold-300">{{
+                                        player.position }}</span>
                                 </div>
                             </div>
                         </div>
@@ -283,27 +319,31 @@
 <!-- ════════════════════════════════════════════
      BENCH
      ════════════════════════════════════════════ -->
-<section class="container-main py-20">
-    <div class="text-center mb-12 champ-scroll-animate">
-        <span class="text-gold-500 text-sm font-semibold uppercase tracking-widest">Reserves</span>
-        <h2 class="text-3xl sm:text-4xl font-extrabold text-navy-900 dark:text-white mt-2">Bench</h2>
-        <p class="text-gray-500 dark:text-gray-400 mt-3 max-w-lg mx-auto">7 substitute players ready to make an impact</p>
+<section class="container-main py-14">
+    <div class="text-center mb-9 champ-scroll-animate">
+        <span class="text-gold-500 text-xs font-semibold uppercase tracking-widest">Reserves</span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-navy-900 dark:text-white mt-1.5">Bench</h2>
+        <p class="text-gray-500 dark:text-gray-400 mt-2 max-w-lg mx-auto text-sm">7 substitute players ready to make an
+            impact</p>
     </div>
 
     <div class="champion-bench-scroll md:grid md:grid-cols-7 gap-4 sm:gap-5 champ-scroll-animate">
         {% for player in champion.bench %}
         <div class="group cursor-pointer" onclick="openChampionModal({{ loop.index0 }}, 'bench')">
-            <div class="relative overflow-hidden rounded-2xl bg-gray-50 dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50 hover:border-gold-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-navy-900/5 dark:hover:shadow-gold-500/5 hover:-translate-y-1">
+            <div
+                class="relative overflow-hidden rounded-2xl bg-gray-50 dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50 hover:border-gold-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-navy-900/5 dark:hover:shadow-gold-500/5 hover:-translate-y-1">
                 <div class="aspect-[3/4] player-card-img">
                     <img src="{{ player.frame_image_url }}" alt="" class="frame-layer"
-                         onerror="this.src='{{ default_frame_image_url }}'">
+                        onerror="this.src='{{ default_frame_image_url }}'">
                     <img src="{{ player.player_image_url }}" alt="{{ player.name }}" class="player-layer"
-                         onerror="this.src='{{ default_player_image_url }}'" loading="lazy">
+                        onerror="this.src='{{ default_player_image_url }}'" loading="lazy">
                 </div>
-                <div class="p-3 sm:p-4">
+                <div class="p-2.5 sm:p-3">
                     <h3 class="font-bold text-navy-900 dark:text-white text-sm truncate">{{ player.name }}</h3>
                     <div class="mt-2">
-                        <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-navy-100 text-navy-700 dark:bg-navy-800 dark:text-navy-200">{{ player.position }}</span>
+                        <span
+                            class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-navy-100 text-navy-700 dark:bg-navy-800 dark:text-navy-200">{{
+                            player.position }}</span>
                     </div>
                 </div>
             </div>
@@ -316,12 +356,13 @@
 <!-- ════════════════════════════════════════════
      ROAD TO GLORY — KNOCKOUT JOURNEY
      ════════════════════════════════════════════ -->
-<section class="bg-gray-50 dark:bg-navy-900/50 py-20">
+<section class="bg-gray-50 dark:bg-navy-900/50 py-14">
     <div class="container-main">
-        <div class="text-center mb-16 champ-scroll-animate">
-            <span class="text-gold-500 text-sm font-semibold uppercase tracking-widest">Journey</span>
-            <h2 class="text-3xl sm:text-4xl font-extrabold text-navy-900 dark:text-white mt-2">Road to Glory</h2>
-            <p class="text-gray-500 dark:text-gray-400 mt-3 max-w-lg mx-auto">The path to lifting the World Cup trophy</p>
+        <div class="text-center mb-12 champ-scroll-animate">
+            <span class="text-gold-500 text-xs font-semibold uppercase tracking-widest">Journey</span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-navy-900 dark:text-white mt-1.5">Road to Glory</h2>
+            <p class="text-gray-500 dark:text-gray-400 mt-2 max-w-lg mx-auto text-sm">The path to lifting the World Cup
+                trophy</p>
         </div>
 
         <!-- Timeline -->
@@ -329,15 +370,22 @@
             {% for match in champion.journey %}
             <div class="champ-scroll-animate relative">
                 <!-- Timeline Dot -->
-                <div class="absolute left-1/2 sm:left-1/2 -translate-x-1/2 -top-1 w-4 h-4 rounded-full {% if match.is_final is defined and match.is_final %}bg-gold-500 shadow-lg shadow-gold-500/40{% else %}bg-navy-300 dark:bg-navy-600{% endif %} border-2 border-white dark:border-navy-950 z-10 hidden sm:block"></div>
-                <div class="absolute left-[24px] -translate-x-1/2 -top-1 w-4 h-4 rounded-full {% if match.is_final is defined and match.is_final %}bg-gold-500 shadow-lg shadow-gold-500/40{% else %}bg-navy-300 dark:bg-navy-600{% endif %} border-2 border-white dark:border-navy-950 z-10 sm:hidden"></div>
+                <div
+                    class="absolute left-1/2 sm:left-1/2 -translate-x-1/2 -top-1 w-4 h-4 rounded-full {% if match.is_final is defined and match.is_final %}bg-gold-500 shadow-lg shadow-gold-500/40{% else %}bg-navy-300 dark:bg-navy-600{% endif %} border-2 border-white dark:border-navy-950 z-10 hidden sm:block">
+                </div>
+                <div
+                    class="absolute left-[24px] -translate-x-1/2 -top-1 w-4 h-4 rounded-full {% if match.is_final is defined and match.is_final %}bg-gold-500 shadow-lg shadow-gold-500/40{% else %}bg-navy-300 dark:bg-navy-600{% endif %} border-2 border-white dark:border-navy-950 z-10 sm:hidden">
+                </div>
 
                 <!-- Match Card -->
-                <div class="{% if match.is_final is defined and match.is_final %}sm:ml-[55%] ml-14{% elif loop.index is odd %}sm:mr-[55%] ml-14 sm:ml-0{% else %}sm:ml-[55%] ml-14{% endif %}">
-                    <div class="p-5 sm:p-6 rounded-2xl {% if match.is_final is defined and match.is_final %}bg-gradient-to-br from-gold-50 to-gold-100/50 dark:from-gold-500/10 dark:to-gold-500/5 border-2 border-gold-500/30{% else %}bg-white dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50{% endif %} hover:shadow-lg transition-all duration-300">
+                <div
+                    class="{% if match.is_final is defined and match.is_final %}sm:ml-[55%] ml-14{% elif loop.index is odd %}sm:mr-[55%] ml-14 sm:ml-0{% else %}sm:ml-[55%] ml-14{% endif %}">
+                    <div
+                        class="p-4 sm:p-5 rounded-2xl {% if match.is_final is defined and match.is_final %}bg-gradient-to-br from-gold-50 to-gold-100/50 dark:from-gold-500/10 dark:to-gold-500/5 border-2 border-gold-500/30{% else %}bg-white dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50{% endif %} hover:shadow-lg transition-all duration-300">
 
                         <!-- Round Label -->
-                        <p class="text-xs font-semibold uppercase tracking-widest {% if match.is_final is defined and match.is_final %}text-gold-600 dark:text-gold-400{% else %}text-gray-400 dark:text-gray-500{% endif %} mb-3">
+                        <p
+                            class="text-xs font-semibold uppercase tracking-widest {% if match.is_final is defined and match.is_final %}text-gold-600 dark:text-gold-400{% else %}text-gray-400 dark:text-gray-500{% endif %} mb-3">
                             {% if match.is_final is defined and match.is_final %}🏆 {% endif %}{{ match.round }}
                         </p>
 
@@ -345,17 +393,20 @@
                         <div class="flex items-center gap-4">
                             <div class="flex items-center gap-2.5">
                                 <span>{{ flag_img(champion.nation.flag_code, 24) }}</span>
-                                <span class="font-bold text-navy-900 dark:text-white text-sm">{{ champion.nation.name }}</span>
+                                <span class="font-bold text-navy-900 dark:text-white text-sm">{{ champion.nation.name
+                                    }}</span>
                             </div>
 
                             <div class="flex-1 text-center">
-                                <span class="inline-block px-4 py-1.5 rounded-xl {% if match.is_final is defined and match.is_final %}bg-gold-500 text-navy-950{% else %}bg-navy-100 dark:bg-navy-800 text-navy-900 dark:text-white{% endif %} font-extrabold text-sm tracking-wider">
+                                <span
+                                    class="inline-block px-4 py-1.5 rounded-xl {% if match.is_final is defined and match.is_final %}bg-gold-500 text-navy-950{% else %}bg-navy-100 dark:bg-navy-800 text-navy-900 dark:text-white{% endif %} font-extrabold text-sm tracking-wider">
                                     {{ match.score }}
                                 </span>
                             </div>
 
                             <div class="flex items-center gap-2.5">
-                                <span class="font-bold text-navy-900 dark:text-white text-sm">{{ match.opponent }}</span>
+                                <span class="font-bold text-navy-900 dark:text-white text-sm">{{ match.opponent
+                                    }}</span>
                                 <span>{{ flag_img(match.opponent_flag, 24) }}</span>
                             </div>
                         </div>
@@ -377,92 +428,104 @@
 <div id="champion-modal" class="hidden fixed inset-0 z-[110] flex items-center justify-center p-4">
     <!-- Backdrop -->
     <div id="champion-modal-overlay"
-         class="absolute inset-0 bg-navy-950/70 backdrop-blur-md opacity-0 transition-opacity duration-300"></div>
+        class="absolute inset-0 bg-navy-950/70 backdrop-blur-md opacity-0 transition-opacity duration-300"></div>
 
     <!-- Modal Content -->
     <div id="champion-modal-content"
-         class="relative w-full max-w-lg bg-white dark:bg-navy-900 rounded-3xl shadow-2xl overflow-hidden opacity-0 scale-95 transition-all duration-300 max-h-[90vh] overflow-y-auto">
+        class="relative w-full max-w-md bg-white dark:bg-navy-900 rounded-2xl shadow-2xl overflow-hidden opacity-0 scale-95 transition-all duration-300 max-h-[90vh] overflow-y-auto">
 
         <!-- Close Button -->
         <button id="champion-modal-close"
-                class="absolute top-4 right-4 z-30 p-2 rounded-full bg-white/80 dark:bg-navy-800/80 hover:bg-white dark:hover:bg-navy-800 text-gray-500 dark:text-gray-400 transition-all cursor-pointer">
+            class="absolute top-3 right-3 z-30 p-1.5 rounded-full bg-white/80 dark:bg-navy-800/80 hover:bg-white dark:hover:bg-navy-800 text-gray-500 dark:text-gray-400 transition-all cursor-pointer">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
         </button>
 
         <!-- Player Image — Premium Champion Card -->
         <div class="aspect-[3/4] champion-modal-card">
             <img id="champion-modal-frame-image" src="" alt="" class="frame-layer"
-                 onerror="this.src=window.DEFAULT_FRAME_IMAGE_URL">
+                onerror="this.src=window.DEFAULT_FRAME_IMAGE_URL">
             <img id="champion-modal-player-image" src="" alt="" class="player-layer"
-                 onerror="this.src=window.DEFAULT_PLAYER_IMAGE_URL">
+                onerror="this.src=window.DEFAULT_PLAYER_IMAGE_URL">
         </div>
 
         <!-- Player Info -->
-        <div class="p-6 sm:p-8">
+        <div class="p-5 sm:p-6">
             <!-- Name + Captain Badge + Number -->
-            <div class="flex items-center gap-3">
-                <h2 id="champion-modal-name" class="text-2xl sm:text-3xl font-extrabold text-navy-900 dark:text-white"></h2>
+            <div class="flex items-center gap-2.5">
+                <h2 id="champion-modal-name" class="text-xl sm:text-2xl font-extrabold text-navy-900 dark:text-white">
+                </h2>
                 <!-- Captain Badge -->
                 <div id="champion-modal-captain-badge" class="hidden flex-shrink-0">
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gold-500/15 border border-gold-500/30 text-gold-600 dark:text-gold-400 text-xs font-bold">
+                    <span
+                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gold-500/15 border border-gold-500/30 text-gold-600 dark:text-gold-400 text-xs font-bold">
                         <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 1l3.22 5.84L22 8.27l-4.53 5.04L18.18 22 12 18.27 5.82 22l.71-8.69L2 8.27l6.78-1.43L12 1z"/>
+                            <path
+                                d="M12 1l3.22 5.84L22 8.27l-4.53 5.04L18.18 22 12 18.27 5.82 22l.71-8.69L2 8.27l6.78-1.43L12 1z" />
                         </svg>
                         Captain
                     </span>
                 </div>
-                <span id="champion-modal-number" class="ml-auto text-sm font-bold text-gray-400 dark:text-gray-500"></span>
+                <span id="champion-modal-number"
+                    class="ml-auto text-sm font-bold text-gray-400 dark:text-gray-500"></span>
             </div>
 
             <!-- Nationality -->
-            <div class="flex items-center gap-3 mt-3">
-                <span id="champion-modal-nationality" class="text-gray-500 dark:text-gray-400 text-lg"></span>
+            <div class="flex items-center gap-2.5 mt-2.5">
+                <span id="champion-modal-nationality" class="text-gray-500 dark:text-gray-400 text-base"></span>
             </div>
 
             <!-- Position Badges -->
-            <div class="flex flex-wrap gap-3 mt-5">
-                <div class="px-4 py-2 rounded-xl bg-navy-100 dark:bg-navy-800">
+            <div class="flex flex-wrap gap-2.5 mt-4">
+                <div class="px-3 py-1.5 rounded-lg bg-navy-100 dark:bg-navy-800">
                     <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Position</span>
                     <p id="champion-modal-primary" class="font-bold text-navy-900 dark:text-white mt-0.5"></p>
                 </div>
-                <div id="champion-modal-secondary-container" class="px-4 py-2 rounded-xl bg-gold-50 dark:bg-gold-500/10 hidden">
+                <div id="champion-modal-secondary-container"
+                    class="px-3 py-1.5 rounded-lg bg-gold-50 dark:bg-gold-500/10 hidden">
                     <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Secondary</span>
                     <p id="champion-modal-secondary" class="font-bold text-gold-700 dark:text-gold-400 mt-0.5"></p>
                 </div>
             </div>
 
             <!-- Tournament Stats Grid -->
-            <div class="mt-6 pt-6 border-t border-gray-100 dark:border-navy-800">
-                <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">Tournament Statistics</p>
-                <div class="grid grid-cols-5 gap-3">
-                    <div class="text-center p-3 rounded-xl bg-gray-50 dark:bg-navy-800/50">
-                        <p id="champion-modal-matches" class="text-xl font-extrabold text-navy-900 dark:text-white">0</p>
-                        <p class="text-[10px] text-gray-400 uppercase tracking-wider mt-1">Matches</p>
+            <div class="mt-5 pt-5 border-t border-gray-100 dark:border-navy-800">
+                <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">
+                    Tournament Statistics</p>
+                <div class="grid grid-cols-5 gap-2">
+                    <div class="text-center p-2.5 rounded-xl bg-gray-50 dark:bg-navy-800/50">
+                        <p id="champion-modal-matches" class="text-lg font-extrabold text-navy-900 dark:text-white">0
+                        </p>
+                        <p class="text-[9px] text-gray-400 uppercase tracking-wider mt-0.5">Matches</p>
                     </div>
-                    <div class="text-center p-3 rounded-xl bg-gray-50 dark:bg-navy-800/50">
-                        <p id="champion-modal-goals" class="text-xl font-extrabold text-gold-500 dark:text-gold-400">0</p>
-                        <p class="text-[10px] text-gray-400 uppercase tracking-wider mt-1">Goals</p>
+                    <div class="text-center p-2.5 rounded-xl bg-gray-50 dark:bg-navy-800/50">
+                        <p id="champion-modal-goals" class="text-lg font-extrabold text-gold-500 dark:text-gold-400">0
+                        </p>
+                        <p class="text-[9px] text-gray-400 uppercase tracking-wider mt-0.5">Goals</p>
                     </div>
-                    <div class="text-center p-3 rounded-xl bg-gray-50 dark:bg-navy-800/50">
-                        <p id="champion-modal-assists" class="text-xl font-extrabold text-navy-900 dark:text-white">0</p>
-                        <p class="text-[10px] text-gray-400 uppercase tracking-wider mt-1">Assists</p>
+                    <div class="text-center p-2.5 rounded-xl bg-gray-50 dark:bg-navy-800/50">
+                        <p id="champion-modal-assists" class="text-lg font-extrabold text-navy-900 dark:text-white">0
+                        </p>
+                        <p class="text-[9px] text-gray-400 uppercase tracking-wider mt-0.5">Assists</p>
                     </div>
-                    <div class="text-center p-3 rounded-xl bg-gray-50 dark:bg-navy-800/50">
-                        <p id="champion-modal-minutes" class="text-xl font-extrabold text-navy-900 dark:text-white">0</p>
-                        <p class="text-[10px] text-gray-400 uppercase tracking-wider mt-1">Minutes</p>
+                    <div class="text-center p-2.5 rounded-xl bg-gray-50 dark:bg-navy-800/50">
+                        <p id="champion-modal-minutes" class="text-lg font-extrabold text-navy-900 dark:text-white">0
+                        </p>
+                        <p class="text-[9px] text-gray-400 uppercase tracking-wider mt-0.5">Minutes</p>
                     </div>
-                    <div class="text-center p-3 rounded-xl bg-gray-50 dark:bg-navy-800/50">
-                        <p id="champion-modal-rating" class="text-xl font-extrabold text-gold-500 dark:text-gold-400">—</p>
-                        <p class="text-[10px] text-gray-400 uppercase tracking-wider mt-1">Rating</p>
+                    <div class="text-center p-2.5 rounded-xl bg-gray-50 dark:bg-navy-800/50">
+                        <p id="champion-modal-rating" class="text-lg font-extrabold text-gold-500 dark:text-gold-400">—
+                        </p>
+                        <p class="text-[9px] text-gray-400 uppercase tracking-wider mt-0.5">Rating</p>
                     </div>
                 </div>
             </div>
 
             <!-- Awards -->
             <div class="mt-5 hidden">
-                <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">Tournament Awards</p>
+                <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">
+                    Tournament Awards</p>
                 <div id="champion-modal-awards" class="flex flex-wrap gap-2"></div>
             </div>
         </div>
