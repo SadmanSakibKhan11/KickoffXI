@@ -18,12 +18,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+from app.formations import is_player_compatible
+
 # ── Position Category Mapping ──────────────────────────────────
 POSITION_CATEGORIES = {
     'GK': 'GK',
-    'CB': 'DEF', 'LB': 'DEF', 'RB': 'DEF',
-    'CDM': 'MID', 'CM': 'MID', 'CAM': 'MID',
-    'LW': 'ATT', 'RW': 'ATT', 'ST': 'ATT',
+    'CB': 'DEF', 'LB': 'DEF', 'RB': 'DEF', 'LWB': 'DEF', 'RWB': 'DEF',
+    'CDM': 'MID', 'CM': 'MID', 'CAM': 'MID', 'LM': 'MID', 'RM': 'MID',
+    'LW': 'ATT', 'RW': 'ATT', 'ST': 'ATT', 'CF': 'ATT',
 }
 
 # Required bench composition
@@ -67,7 +69,6 @@ def validate_squad(formation_name, starting_xi, bench, players_by_id, formations
     formation = formations_dict.get(formation_name)
     if not formation:
         errors.append(f"Invalid formation '{formation_name}'. Supported: {', '.join(formations_dict.keys())}.")
-        # Can't validate further without a valid formation
         return {'valid': False, 'errors': errors}
 
     # ── Rule 1: Exactly 11 starting players ────────────────────
@@ -107,7 +108,7 @@ def validate_squad(formation_name, starting_xi, bench, players_by_id, formations
 
     all_ids = xi_ids + bench_ids
 
-    # ── Rule 5: All player IDs must exist ──────────────────────
+    # ── Rule 3: All player IDs must exist ──────────────────────
     invalid_ids = [pid for pid in all_ids if pid not in players_by_id]
     if invalid_ids:
         errors.append(f"Unknown player ID(s): {invalid_ids}.")
@@ -126,7 +127,22 @@ def validate_squad(formation_name, starting_xi, bench, players_by_id, formations
             dup_names.append(player.name if player else f"ID {pid}")
         errors.append(f"Duplicate player(s) in squad: {', '.join(dup_names)}.")
 
-    # ── Rule 3: Bench composition (1 GK / 2 DEF / 2 MID / 2 ATT) ──
+    # ── Rule 5: Starting XI Position Compatibility ─────────────
+    if isinstance(starting_xi, list) and len(starting_xi) == 11 and formation and not invalid_ids:
+        for entry in starting_xi:
+            if isinstance(entry, dict):
+                slot_idx = entry.get('slot_index')
+                pid = entry.get('player_id')
+                if slot_idx is not None and 0 <= slot_idx < len(formation):
+                    slot_pos = formation[slot_idx]['position']
+                    player = players_by_id.get(pid)
+                    if player:
+                        if not is_player_compatible(player.primary_position, player.secondary_position, slot_pos):
+                            errors.append(
+                                f"Player '{player.name}' ({player.primary_position}) is not position-compatible with slot '{slot_pos}'."
+                            )
+
+    # ── Rule 6: Bench composition (1 GK / 2 DEF / 2 MID / 2 ATT) ──
     if isinstance(bench, list) and len(bench) == 7 and not invalid_ids:
         bench_categories = {'GK': 0, 'DEF': 0, 'MID': 0, 'ATT': 0}
         for entry in bench:

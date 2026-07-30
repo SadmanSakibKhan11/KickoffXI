@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================
     const allPlayers = window.MSIM_PLAYERS || [];
     const formations = window.MSIM_FORMATIONS || {};
+    const positionCompatibility = window.MSIM_POSITION_COMPATIBILITY || {};
 
     // ============================================================
     // STATE
@@ -34,19 +35,87 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Position category mapping (mirrors backend)
     const POSITION_CATEGORIES = {
-        'GK': 'GK', 'CB': 'DEF', 'LB': 'DEF', 'RB': 'DEF',
-        'CDM': 'MID', 'CM': 'MID', 'CAM': 'MID',
-        'LW': 'ATT', 'RW': 'ATT', 'ST': 'ATT',
+        'GK': 'GK', 'CB': 'DEF', 'LB': 'DEF', 'RB': 'DEF', 'LWB': 'DEF', 'RWB': 'DEF',
+        'CDM': 'MID', 'CM': 'MID', 'CAM': 'MID', 'LM': 'MID', 'RM': 'MID',
+        'LW': 'ATT', 'RW': 'ATT', 'ST': 'ATT', 'CF': 'ATT',
     };
     const CATEGORY_POSITIONS = {
         'GK': ['GK'],
-        'DEF': ['CB', 'LB', 'RB'],
-        'MID': ['CDM', 'CM', 'CAM'],
-        'ATT': ['LW', 'RW', 'ST'],
+        'DEF': ['CB', 'LB', 'RB', 'LWB', 'RWB'],
+        'MID': ['CDM', 'CM', 'CAM', 'LM', 'RM'],
+        'ATT': ['LW', 'RW', 'ST', 'CF'],
     };
 
     function getCategory(pos) {
         return POSITION_CATEGORIES[pos] || 'MID';
+    }
+
+    /**
+     * Parse all positions for a player (primary + secondary).
+     * Handles comma-separated secondary positions like "CM,RM".
+     */
+    function getPlayerPositions(player) {
+        const positions = [];
+        if (player.primary_position) {
+            positions.push(player.primary_position.trim());
+        }
+        if (player.secondary_position) {
+            player.secondary_position.split(',').forEach(p => {
+                const clean = p.trim();
+                if (clean && !positions.includes(clean)) {
+                    positions.push(clean);
+                }
+            });
+        }
+        return positions;
+    }
+
+    /**
+     * Get compatible positions for a given slot position from central map.
+     */
+    function getCompatiblePositions(pos) {
+        if (!pos) return [];
+        const posClean = pos.trim();
+        return positionCompatibility[posClean] || [posClean];
+    }
+
+    /**
+     * Check if a player is compatible with a required slot position.
+     */
+    function isPlayerCompatible(player, requiredPos) {
+        const playerPos = getPlayerPositions(player);
+        const compatible = getCompatiblePositions(requiredPos);
+        return playerPos.some(p => compatible.includes(p));
+    }
+
+    /**
+     * Calculate position match priority for sorting:
+     * 1. Primary position matches requested slot exactly.
+     * 2. Secondary position matches requested slot exactly.
+     * 3. Compatible position matches requested slot (Primary or Secondary in compatible list).
+     * 4. Otherwise.
+     */
+    function getMatchPriority(player, reqPos) {
+        if (!reqPos) return 1;
+        const reqClean = reqPos.trim();
+        const primary = player.primary_position ? player.primary_position.trim() : '';
+        const secondaryList = player.secondary_position
+            ? player.secondary_position.split(',').map(s => s.trim())
+            : [];
+
+        if (primary === reqClean) {
+            return 1;
+        }
+        if (secondaryList.includes(reqClean)) {
+            return 2;
+        }
+
+        const compatible = getCompatiblePositions(reqClean);
+        const allPos = [primary, ...secondaryList];
+        if (allPos.some(p => compatible.includes(p))) {
+            return 3;
+        }
+        return 4;
     }
 
     // ============================================================
@@ -322,7 +391,8 @@ document.addEventListener('DOMContentLoaded', () => {
             filtered = filtered.filter(p =>
                 p.name.toLowerCase().includes(q) ||
                 p.nationality.toLowerCase().includes(q) ||
-                p.primary_position.toLowerCase().includes(q)
+                p.primary_position.toLowerCase().includes(q) ||
+                (p.secondary_position && p.secondary_position.toLowerCase().includes(q))
             );
         }
 
@@ -332,22 +402,36 @@ document.addEventListener('DOMContentLoaded', () => {
             filtered = filtered.filter(p => p.nationality === nat);
         }
 
-        // Apply position filter
+        // Apply position compatibility filter
         const pos = pickerFilterPos?.value || '';
         if (pos) {
-            filtered = filtered.filter(p => p.primary_position === pos);
-        }
-
-        // For bench slots, further filter by category if no explicit position filter
-        if (pickerTarget?.type === 'bench' && !pos && pickerTarget.category) {
+            filtered = filtered.filter(p => isPlayerCompatible(p, pos));
+        } else if (pickerTarget?.type === 'bench' && pickerTarget.category) {
+            // For bench slots with no explicit position filter, filter by category positions
             const catPositions = CATEGORY_POSITIONS[pickerTarget.category] || [];
             if (catPositions.length > 0) {
-                filtered = filtered.filter(p => catPositions.includes(p.primary_position));
+                filtered = filtered.filter(p => {
+                    const pPositions = getPlayerPositions(p);
+                    return pPositions.some(pPos => {
+                        const comp = getCompatiblePositions(pPos);
+                        return catPositions.some(cPos => comp.includes(cPos) || pPos === cPos);
+                    });
+                });
             }
         }
 
-        // Sort by overall descending
-        filtered.sort((a, b) => b.overall - a.overall);
+        // Intelligent Priority Sorting (Primary exact -> Secondary exact -> Compatible -> Overall rating)
+        const reqPos = (pickerTarget?.type === 'xi' ? pickerTarget.position : pos) || pos || '';
+        filtered.sort((a, b) => {
+            if (reqPos) {
+                const priA = getMatchPriority(a, reqPos);
+                const priB = getMatchPriority(b, reqPos);
+                if (priA !== priB) {
+                    return priA - priB;
+                }
+            }
+            return (b.overall || 0) - (a.overall || 0);
+        });
 
         if (!pickerGrid) return;
 
@@ -368,7 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="p-1.5">
                         <h4 class="font-bold text-navy-900 dark:text-white text-[10px] sm:text-xs truncate">${p.name}</h4>
                         <div class="flex items-center justify-between mt-0.5">
-                            <span class="text-[9px] text-gray-500 dark:text-gray-400">${p.primary_position}</span>
+                            <span class="text-[9px] text-gray-500 dark:text-gray-400 truncate max-w-[70%]">${p.primary_position}${p.secondary_position ? ' / ' + p.secondary_position : ''}</span>
                             <span class="text-[9px] font-bold text-gold-500">${p.overall}</span>
                         </div>
                         <div class="text-[8px] text-gray-400 dark:text-gray-500 mt-0.5 truncate">${flagImgHtml(p.nationality, 10)} ${p.nationality}</div>

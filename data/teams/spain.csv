@@ -1,27 +1,27 @@
-name,primary_position,secondary_position,nationality
-Unai Simon,GK,,Spain
-David Raya,GK,,Spain
-Joan Garcia,GK,,Spain
-Pedro Porro,RB,,Spain
-Marcos Llorente,RB,"CM,RM",Spain
-Aymeric Laporte,CB,,Spain
-Pau Cubarsi,CB,,Spain
-Marc Pubill,RB,CB,Spain
-Eric Garcia,CB,"CM,CDM",Spain
-Marc Cucurella,LB,,Spain
-Alejandro Grimaldo,LB,LM,Spain
-Rodri,CDM,CM,Spain
-Martin Zubimendi,CDM,CM,Spain
-Pedri,CM,CDM,Spain
-Fabian Ruiz,CM,CDM,Spain
-Mikel Merino,CM,"CAM,ST",Spain
-Gavi,CM,CAM,Spain
-Alex Baena,LW,LM,Spain
-Mikel Oyarzabal,ST,,Spain
-Lamine Yamal,RW,RM,Spain
-Ferran Torres,ST,"RW,LW",Spain
-Borja Iglesias,ST,,Spain
-Dani Olmo,CAM,CM,Spain
-Victor Munoz,RW,LW,Spain
-Nico Williams,LW,"RW,LM",Spain
-Yeremy Pino,RW,LW,Spain
+name,primary_position,secondary_position,nationality,overall
+Unai Simon,GK,,Spain,90
+David Raya,GK,,Spain,85
+Joan Garcia,GK,,Spain,
+Pedro Porro,RB,,Spain,87
+Marcos Llorente,RB,"CM,RM",Spain,
+Aymeric Laporte,CB,,Spain,87
+Pau Cubarsi,CB,,Spain,91
+Marc Pubill,RB,CB,Spain,
+Eric Garcia,CB,"CM,CDM",Spain,
+Marc Cucurella,LB,,Spain,89
+Alejandro Grimaldo,LB,LM,Spain,
+Rodri,CDM,CM,Spain,91
+Martin Zubimendi,CDM,CM,Spain,
+Pedri,CM,CDM,Spain,88
+Fabian Ruiz,CM,CDM,Spain,
+Mikel Merino,CM,"CAM,ST",Spain,
+Gavi,CM,CAM,Spain,
+Alex Baena,LW,LM,Spain,86
+Mikel Oyarzabal,ST,,Spain,
+Lamine Yamal,RW,RM,Spain,90
+Ferran Torres,ST,"RW,LW",Spain,
+Borja Iglesias,ST,,Spain,
+Dani Olmo,CAM,CM,Spain,
+Victor Munoz,RW,LW,Spain,
+Nico Williams,LW,"RW,LM",Spain,
+Yeremy Pino,RW,LW,Spain,

@@ -276,20 +276,22 @@ def match_simulator():
     formation picking, squad building, and match simulation.
     """
     import json
-    from app.formations import FORMATIONS
+    from app.formations import FORMATIONS, POSITION_COMPATIBILITY
 
     all_players = current_app.data_loader.get_all_players()
     nationalities = current_app.data_loader.nationalities
     positions = sorted(list(set(p.primary_position for p in all_players)))
 
-    # Serialize players and formations for JS
+    # Serialize players, formations, and position compatibility for JS
     players_json = json.dumps([p.to_dict() for p in all_players], default=str)
     formations_json = json.dumps(FORMATIONS, default=str)
+    position_compatibility_json = json.dumps(POSITION_COMPATIBILITY, default=str)
 
     return render_template(
         'match_simulator.html',
         players_json=players_json,
         formations_json=formations_json,
+        position_compatibility_json=position_compatibility_json,
         nationalities=nationalities,
         positions=positions,
         flags=COUNTRY_FLAGS,

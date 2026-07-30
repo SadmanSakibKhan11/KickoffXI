@@ -23,12 +23,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+from app.formations import is_player_compatible
+
 # ── Position Category Mapping ──────────────────────────────────
 POSITION_CATEGORIES = {
     'GK': 'GK',
-    'CB': 'DEF', 'LB': 'DEF', 'RB': 'DEF',
-    'CDM': 'MID', 'CM': 'MID', 'CAM': 'MID',
-    'LW': 'ATT', 'RW': 'ATT', 'ST': 'ATT',
+    'CB': 'DEF', 'LB': 'DEF', 'RB': 'DEF', 'LWB': 'DEF', 'RWB': 'DEF',
+    'CDM': 'MID', 'CM': 'MID', 'CAM': 'MID', 'LM': 'MID', 'RM': 'MID',
+    'LW': 'ATT', 'RW': 'ATT', 'ST': 'ATT', 'CF': 'ATT',
 }
 
 # Goalscorer weights by category
@@ -56,39 +58,20 @@ def _get_category(position):
     return cat
 
 
-def _categorize_players(players):
-    """Split a list of players into category buckets."""
-    buckets = {'GK': [], 'DEF': [], 'MID': [], 'ATT': []}
-    for p in players:
-        cat = _get_category(p.primary_position)
-        buckets[cat].append(p)
-    return buckets
-
-
-def _count_formation_categories(formation_slots):
-    """Count how many players of each category a formation requires."""
-    counts = {'GK': 0, 'DEF': 0, 'MID': 0, 'ATT': 0}
-    for slot in formation_slots:
-        cat = _get_category(slot['position'])
-        counts[cat] += 1
-    return counts
-
-
 # ════════════════════════════════════════════════════════════════
 # AI SQUAD GENERATION
 # ════════════════════════════════════════════════════════════════
 
 def generate_ai_squad(formation_slots, user_player_ids, all_players, difficulty):
     """
-    Generate the AI opponent's Starting XI + bench.
+    Generate the AI opponent's Starting XI + bench using position compatibility.
 
     Algorithm:
         1. Remove user-selected players from the pool.
-        2. Split remaining into position categories.
-        3. Sort each category descending by overall.
-        4. Restrict to top N% by difficulty.
-        5. Randomly select required counts per category.
-        6. Generate bench with 1 GK / 2 DEF / 2 MID / 2 ATT.
+        2. Sort pool descending by overall rating.
+        3. For each formation slot, select a top candidate from the difficulty pool
+           whose primary or secondary position is compatible with the slot.
+        4. Generate bench with 1 GK / 2 DEF / 2 MID / 2 ATT.
 
     Args:
         formation_slots: List of 11 slot dicts (from formations.py).
@@ -102,63 +85,65 @@ def generate_ai_squad(formation_slots, user_player_ids, all_players, difficulty)
     config = DIFFICULTY_CONFIG.get(difficulty, DIFFICULTY_CONFIG['normal'])
     pool_pct = config['pool_pct']
 
-    # Step 1: Remove user-selected players
+    # Step 1: Remove user-selected players and sort by overall
     user_ids_set = set(user_player_ids)
     available = [p for p in all_players if p.id not in user_ids_set]
+    available.sort(key=lambda p: p.overall, reverse=True)
 
-    # Step 2: Split into categories
-    buckets = _categorize_players(available)
+    # Step 2: Calculate restricted pool size by difficulty
+    top_n = max(11, math.ceil(len(available) * pool_pct))
+    restricted_pool = available[:top_n]
 
-    # Step 3: Sort each category by overall descending
-    for cat in buckets:
-        buckets[cat].sort(key=lambda p: p.overall, reverse=True)
-
-    # Step 4: Restrict to top N%
-    restricted = {}
-    for cat, players in buckets.items():
-        top_n = max(1, math.ceil(len(players) * pool_pct))
-        restricted[cat] = players[:top_n]
-
-    # Step 5: Select starting XI to match formation shape
-    formation_needs = _count_formation_categories(formation_slots)
     ai_starting_xi = []
+    selected_ids = set()
 
-    for cat, needed in formation_needs.items():
-        pool = restricted[cat]
-        if len(pool) < needed:
-            logger.warning(
-                f"[WARNING] AI squad: insufficient {cat} players in top-{int(pool_pct*100)}% "
-                f"(need {needed}, have {len(pool)}). Falling back to full pool."
-            )
-            pool = buckets[cat]
+    # Step 3: Select starting XI slot-by-slot using Position Compatibility System
+    for slot in formation_slots:
+        slot_pos = slot['position']
 
-        selected = random.sample(pool, min(needed, len(pool)))
-        ai_starting_xi.extend(selected)
+        # Look in restricted pool for compatible candidates not yet selected
+        candidates = [
+            p for p in restricted_pool
+            if p.id not in selected_ids and is_player_compatible(p.primary_position, p.secondary_position, slot_pos)
+        ]
 
-        # Remove selected from both pools to avoid bench duplicates
-        selected_ids = {p.id for p in selected}
-        restricted[cat] = [p for p in restricted[cat] if p.id not in selected_ids]
-        buckets[cat] = [p for p in buckets[cat] if p.id not in selected_ids]
+        # Fallback to full available pool if restricted pool has no compatible candidates
+        if not candidates:
+            candidates = [
+                p for p in available
+                if p.id not in selected_ids and is_player_compatible(p.primary_position, p.secondary_position, slot_pos)
+            ]
 
-    # Step 6: Select bench (1 GK / 2 DEF / 2 MID / 2 ATT)
+        # Emergency fallback
+        if not candidates:
+            candidates = [p for p in available if p.id not in selected_ids]
+
+        if candidates:
+            # Randomly select among top 5 eligible candidates for variety
+            chosen = random.choice(candidates[:min(5, len(candidates))])
+            ai_starting_xi.append(chosen)
+            selected_ids.add(chosen.id)
+
+    # Step 4: Select bench (1 GK / 2 DEF / 2 MID / 2 ATT)
+    bench_pool = [p for p in available if p.id not in selected_ids]
     bench_needs = {'GK': 1, 'DEF': 2, 'MID': 2, 'ATT': 2}
     ai_bench = []
 
     for cat, needed in bench_needs.items():
-        pool = restricted[cat]
-        if len(pool) < needed:
-            logger.warning(
-                f"[WARNING] AI bench: insufficient {cat} players in restricted pool "
-                f"(need {needed}, have {len(pool)}). Falling back to full pool."
-            )
-            pool = buckets[cat]
+        # Find bench candidates whose category matches
+        cat_candidates = [
+            p for p in bench_pool
+            if p.id not in selected_ids and _get_category(p.primary_position) == cat
+        ]
 
-        selected = random.sample(pool, min(needed, len(pool)))
+        if len(cat_candidates) < needed:
+            # Fallback to any remaining player if category pool exhausted
+            cat_candidates = [p for p in bench_pool if p.id not in selected_ids]
+
+        selected = random.sample(cat_candidates, min(needed, len(cat_candidates)))
         ai_bench.extend(selected)
-
-        # Remove selected
-        selected_ids = {p.id for p in selected}
-        buckets[cat] = [p for p in buckets[cat] if p.id not in selected_ids]
+        for s in selected:
+            selected_ids.add(s.id)
 
     return {
         'starting_xi': ai_starting_xi,

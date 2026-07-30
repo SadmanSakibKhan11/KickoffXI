@@ -340,6 +340,7 @@
 <script>
     window.MSIM_PLAYERS = {{ players_json | safe }};
     window.MSIM_FORMATIONS = {{ formations_json | safe }};
+    window.MSIM_POSITION_COMPATIBILITY = {{ position_compatibility_json | safe }};
 </script>
 <script src="{{ url_for('static', filename='js/match_simulator.js') }}"></script>
 {% endblock %}
