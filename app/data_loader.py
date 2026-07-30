@@ -60,12 +60,13 @@ class Player:
         - frame:  teams/<country>/frame.png         (one per country, reusable)
         - player: teams/<country>/players/<name>.png (one per player, transparent BG)
     """
-    def __init__(self, id, name, primary_position, secondary_position, nationality):
+    def __init__(self, id, name, primary_position, secondary_position, nationality, overall=70):
         self.id = id
         self.name = name
         self.primary_position = primary_position
         self.secondary_position = secondary_position if secondary_position else None
         self.nationality = nationality
+        self.overall = overall
 
     @property
     def player_image_path(self):
@@ -139,6 +140,7 @@ class Player:
             'nationality': self.nationality,
             'primary_position': self.primary_position,
             'secondary_position': self.secondary_position,
+            'overall': self.overall,
             'player_image_url': self.player_image_url,
             'frame_image_url': self.frame_image_url,
         }
@@ -199,6 +201,11 @@ class CSVDataLoader:
                     if not reader.fieldnames or not required_headers.issubset(set(reader.fieldnames)):
                         logger.warning(f"[WARNING] Skipping malformed CSV (missing required headers): {filename}")
                         continue
+
+                    # Check if this CSV has an 'overall' column
+                    has_overall_col = 'overall' in (reader.fieldnames or [])
+                    if not has_overall_col:
+                        logger.warning(f"[WARNING] CSV '{filename}' has no 'overall' column — defaulting all players to overall=70.")
                     
                     for row_idx, row in enumerate(reader, start=2):
                         # Handle malformed rows or missing columns gracefully
@@ -212,6 +219,20 @@ class CSVDataLoader:
                             if not name or not primary_pos or not nationality:
                                 logger.warning(f"[WARNING] Skipping malformed row {row_idx} in {filename}: missing key data.")
                                 continue
+
+                            # Parse overall rating (default 70 if missing/invalid)
+                            overall = 70
+                            if has_overall_col:
+                                raw_overall = row.get('overall', '').strip()
+                                if raw_overall:
+                                    try:
+                                        overall = int(raw_overall)
+                                        overall = max(0, min(99, overall))
+                                    except (ValueError, TypeError):
+                                        logger.warning(f"[WARNING] Non-numeric 'overall' value '{raw_overall}' for row {row_idx} in {filename} — defaulting to 70.")
+                                        overall = 70
+                                else:
+                                    logger.warning(f"[WARNING] Empty 'overall' value for row {row_idx} in {filename} — defaulting to 70.")
                             
                             player = Player(
                                 id=next_id,
@@ -219,6 +240,7 @@ class CSVDataLoader:
                                 primary_position=primary_pos.strip(),
                                 secondary_position=secondary_pos.strip() if secondary_pos else None,
                                 nationality=nationality.strip(),
+                                overall=overall,
                             )
                             players_list.append(player)
                             next_id += 1

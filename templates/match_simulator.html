@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+
+{% block title %}{{ config.APP_NAME }} — ⚽ Match Simulator{% endblock %}
+
+{% block head %}
+<meta name="description"
+    content="Match Simulator — Build your dream squad, choose a formation, and simulate a match on {{ config.APP_NAME }}.">
+{% endblock %}
+
+{% block content %}
+
+<!-- ════════════════════════════════════════════
+     MATCH SIMULATOR — SINGLE PAGE WIZARD
+     ════════════════════════════════════════════ -->
+
+<!-- ── STEP 1: SETUP (Difficulty + Formation) ────────────── -->
+<section id="step-setup" class="min-h-[80vh] flex items-center">
+    <div class="container-main py-10 sm:py-14 w-full">
+        <div class="text-center mb-8 animate-fade-in-up">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-gold-500/15 border border-gold-500/25 mb-4">
+                <span class="w-2 h-2 rounded-full bg-gold-400 animate-pulse"></span>
+                <span class="text-gold-600 dark:text-gold-400 text-[11px] font-semibold uppercase tracking-widest">Match Simulator</span>
+            </div>
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-navy-900 dark:text-white tracking-tight">
+                Build Your Squad
+            </h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-3 max-w-md mx-auto text-sm sm:text-base">
+                Choose difficulty, pick a formation, and assemble your dream team to face the AI.
+            </p>
+        </div>
+
+        <!-- Difficulty Selection -->
+        <div class="max-w-2xl mx-auto mb-10">
+            <h2 class="text-center text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">
+                Select Difficulty</h2>
+            <div class="grid grid-cols-3 gap-3 sm:gap-4" id="difficulty-cards">
+                <button data-difficulty="easy"
+                    class="difficulty-card group p-4 sm:p-5 rounded-2xl border-2 border-gray-200/50 dark:border-navy-800/50 bg-white dark:bg-navy-900 hover:border-green-500/50 dark:hover:border-green-500/50 transition-all duration-300 hover:shadow-lg cursor-pointer text-center">
+                    <div class="text-2xl sm:text-3xl mb-2">🟢</div>
+                    <h3 class="font-bold text-sm sm:text-base text-navy-900 dark:text-white">Easy</h3>
+                    <p class="text-[11px] text-gray-400 dark:text-gray-500 mt-1">Top 50% AI pool</p>
+                </button>
+                <button data-difficulty="normal"
+                    class="difficulty-card group p-4 sm:p-5 rounded-2xl border-2 border-gold-500/40 dark:border-gold-500/30 bg-gold-50/50 dark:bg-gold-500/5 hover:border-gold-500/60 transition-all duration-300 hover:shadow-lg cursor-pointer text-center ring-2 ring-gold-500/30">
+                    <div class="text-2xl sm:text-3xl mb-2">🟡</div>
+                    <h3 class="font-bold text-sm sm:text-base text-navy-900 dark:text-white">Normal</h3>
+                    <p class="text-[11px] text-gray-400 dark:text-gray-500 mt-1">Top 35% AI pool</p>
+                </button>
+                <button data-difficulty="hard"
+                    class="difficulty-card group p-4 sm:p-5 rounded-2xl border-2 border-gray-200/50 dark:border-navy-800/50 bg-white dark:bg-navy-900 hover:border-red-500/50 dark:hover:border-red-500/50 transition-all duration-300 hover:shadow-lg cursor-pointer text-center">
+                    <div class="text-2xl sm:text-3xl mb-2">🔴</div>
+                    <h3 class="font-bold text-sm sm:text-base text-navy-900 dark:text-white">Hard</h3>
+                    <p class="text-[11px] text-gray-400 dark:text-gray-500 mt-1">Top 20% AI pool</p>
+                </button>
+            </div>
+        </div>
+
+        <!-- Formation Selection -->
+        <div class="max-w-3xl mx-auto mb-8">
+            <h2 class="text-center text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">
+                Choose Formation</h2>
+            <div class="flex flex-wrap justify-center gap-2 sm:gap-3" id="formation-buttons">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Proceed Button -->
+        <div class="text-center mt-8">
+            <button id="btn-start-building"
+                class="px-8 py-3 rounded-xl bg-gold-500 hover:bg-gold-600 text-navy-950 font-bold text-sm sm:text-base uppercase tracking-wider transition-all duration-300 hover:shadow-xl hover:shadow-gold-500/20 hover:-translate-y-0.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                Build Your Squad →
+            </button>
+        </div>
+    </div>
+</section>
+
+
+<!-- ── STEP 2: SQUAD BUILDER ────────────── -->
+<section id="step-squad" class="hidden">
+    <div class="container-main py-8 sm:py-10">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+            <div>
+                <button id="btn-back-setup"
+                    class="text-xs text-gray-400 hover:text-gold-500 transition-colors mb-2 cursor-pointer flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                    Back to Setup
+                </button>
+                <h2 class="text-xl sm:text-2xl font-extrabold text-navy-900 dark:text-white">
+                    Squad Builder
+                    <span id="formation-label" class="text-gold-500 ml-2"></span>
+                </h2>
+            </div>
+            <div class="flex items-center gap-3">
+                <span id="squad-counter" class="text-xs text-gray-400 dark:text-gray-500 font-medium">0/11 Starting · 0/7 Bench</span>
+                <button id="btn-simulate"
+                    class="px-5 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-navy-950 font-bold text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled>
+                    Simulate Match ⚡
+                </button>
+            </div>
+        </div>
+
+        <!-- Validation Errors -->
+        <div id="validation-errors" class="hidden mb-4 p-3 rounded-xl bg-accent-50 dark:bg-accent-500/10 border border-accent-200 dark:border-accent-500/20">
+            <p class="text-accent-600 dark:text-accent-400 text-xs font-semibold uppercase tracking-wider mb-1">Squad Issues</p>
+            <ul id="validation-error-list" class="text-accent-700 dark:text-accent-300 text-sm space-y-0.5"></ul>
+        </div>
+
+        <!-- Football Pitch -->
+        <div class="match-sim-pitch p-4 sm:p-6 lg:p-8 mb-6">
+            <div class="match-sim-pitch-stripes"></div>
+            <div id="pitch-slots" class="relative z-10 space-y-5 sm:space-y-7">
+                <!-- Rows populated by JS -->
+            </div>
+        </div>
+
+        <!-- Bench -->
+        <div class="mb-6">
+            <h3 class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">
+                Bench <span class="text-navy-900 dark:text-white">(7 Players)</span>
+            </h3>
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 sm:gap-3" id="bench-slots">
+                <!-- 1 GK -->
+                <div class="match-sim-bench-slot" data-bench-category="GK" data-bench-index="0">
+                    <div class="match-sim-bench-empty cursor-pointer" onclick="window.MSim.openBenchPicker(0, 'GK')">
+                        <span class="text-xs font-bold text-white/50">GK</span>
+                        <span class="text-[10px] text-white/30 mt-0.5">Tap to add</span>
+                    </div>
+                </div>
+                <!-- 2 DEF -->
+                <div class="match-sim-bench-slot" data-bench-category="DEF" data-bench-index="1">
+                    <div class="match-sim-bench-empty cursor-pointer" onclick="window.MSim.openBenchPicker(1, 'DEF')">
+                        <span class="text-xs font-bold text-white/50">DEF</span>
+                        <span class="text-[10px] text-white/30 mt-0.5">Tap to add</span>
+                    </div>
+                </div>
+                <div class="match-sim-bench-slot" data-bench-category="DEF" data-bench-index="2">
+                    <div class="match-sim-bench-empty cursor-pointer" onclick="window.MSim.openBenchPicker(2, 'DEF')">
+                        <span class="text-xs font-bold text-white/50">DEF</span>
+                        <span class="text-[10px] text-white/30 mt-0.5">Tap to add</span>
+                    </div>
+                </div>
+                <!-- 2 MID -->
+                <div class="match-sim-bench-slot" data-bench-category="MID" data-bench-index="3">
+                    <div class="match-sim-bench-empty cursor-pointer" onclick="window.MSim.openBenchPicker(3, 'MID')">
+                        <span class="text-xs font-bold text-white/50">MID</span>
+                        <span class="text-[10px] text-white/30 mt-0.5">Tap to add</span>
+                    </div>
+                </div>
+                <div class="match-sim-bench-slot" data-bench-category="MID" data-bench-index="4">
+                    <div class="match-sim-bench-empty cursor-pointer" onclick="window.MSim.openBenchPicker(4, 'MID')">
+                        <span class="text-xs font-bold text-white/50">MID</span>
+                        <span class="text-[10px] text-white/30 mt-0.5">Tap to add</span>
+                    </div>
+                </div>
+                <!-- 2 ATT -->
+                <div class="match-sim-bench-slot" data-bench-category="ATT" data-bench-index="5">
+                    <div class="match-sim-bench-empty cursor-pointer" onclick="window.MSim.openBenchPicker(5, 'ATT')">
+                        <span class="text-xs font-bold text-white/50">ATT</span>
+                        <span class="text-[10px] text-white/30 mt-0.5">Tap to add</span>
+                    </div>
+                </div>
+                <div class="match-sim-bench-slot" data-bench-category="ATT" data-bench-index="6">
+                    <div class="match-sim-bench-empty cursor-pointer" onclick="window.MSim.openBenchPicker(6, 'ATT')">
+                        <span class="text-xs font-bold text-white/50">ATT</span>
+                        <span class="text-[10px] text-white/30 mt-0.5">Tap to add</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ── PLAYER PICKER MODAL ────────────── -->
+<div id="picker-modal" class="hidden fixed inset-0 z-[120] flex items-center justify-center p-4">
+    <div id="picker-overlay" class="absolute inset-0 bg-navy-950/70 backdrop-blur-md opacity-0 transition-opacity duration-300"></div>
+    <div id="picker-content"
+        class="relative w-full max-w-lg bg-white dark:bg-navy-900 rounded-2xl shadow-2xl overflow-hidden opacity-0 scale-95 transition-all duration-300 max-h-[85vh] flex flex-col">
+
+        <!-- Picker Header -->
+        <div class="p-4 border-b border-gray-100 dark:border-navy-800">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-bold text-navy-900 dark:text-white text-sm sm:text-base">
+                    Select Player
+                    <span id="picker-slot-label" class="text-gold-500 ml-1"></span>
+                </h3>
+                <button id="picker-close"
+                    class="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-navy-800 dark:hover:bg-navy-700 text-gray-500 dark:text-gray-400 transition-all cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <!-- Search + Filters -->
+            <input id="picker-search" type="text" placeholder="Search players..."
+                class="w-full px-3 py-2 rounded-lg bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-sm text-navy-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gold-500/30 mb-2">
+            <div class="flex gap-2">
+                <select id="picker-filter-nationality"
+                    class="flex-1 px-2 py-1.5 rounded-lg bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-xs text-navy-900 dark:text-white focus:outline-none">
+                    <option value="">All Nations</option>
+                    {% for nat in nationalities %}
+                    <option value="{{ nat }}">{{ nat }}</option>
+                    {% endfor %}
+                </select>
+                <select id="picker-filter-position"
+                    class="flex-1 px-2 py-1.5 rounded-lg bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-xs text-navy-900 dark:text-white focus:outline-none">
+                    <option value="">All Positions</option>
+                    {% for pos in positions %}
+                    <option value="{{ pos }}">{{ pos }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Player Grid (scrollable) -->
+        <div id="picker-grid" class="flex-1 overflow-y-auto p-3 grid grid-cols-3 sm:grid-cols-4 gap-2">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+</div>
+
+
+<!-- ── STEP 3: MATCH ANIMATION ────────────── -->
+<div id="step-animation" class="hidden fixed inset-0 z-[130] flex items-center justify-center bg-navy-950">
+    <div class="text-center">
+        <div id="anim-stage" class="text-3xl sm:text-5xl font-black text-white uppercase tracking-widest opacity-0 transition-opacity duration-500">
+        </div>
+        <div class="mt-4 flex justify-center">
+            <div class="w-8 h-8 border-3 border-gold-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ── STEP 4: RESULT SCREEN ────────────── -->
+<section id="step-result" class="hidden">
+    <div class="container-main py-8 sm:py-12">
+
+        <!-- Scoreboard -->
+        <div class="text-center mb-8 animate-fade-in-up">
+            <span id="result-badge"
+                class="inline-block px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-4"></span>
+            <div class="flex items-center justify-center gap-4 sm:gap-8">
+                <div class="text-right">
+                    <p class="text-lg sm:text-xl font-extrabold text-navy-900 dark:text-white">Your Team</p>
+                </div>
+                <div class="flex items-center gap-2 sm:gap-4">
+                    <span id="result-user-score"
+                        class="text-4xl sm:text-6xl font-black text-navy-900 dark:text-white">0</span>
+                    <span class="text-xl sm:text-2xl text-gray-400">–</span>
+                    <span id="result-ai-score"
+                        class="text-4xl sm:text-6xl font-black text-navy-900 dark:text-white">0</span>
+                </div>
+                <div class="text-left">
+                    <p class="text-lg sm:text-xl font-extrabold text-navy-900 dark:text-white">AI Select XI</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Match Stats -->
+        <div class="max-w-xl mx-auto mb-8">
+            <h3 class="text-center text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">Match Statistics</h3>
+            <div id="result-stats" class="space-y-3">
+                <!-- Stats bars populated by JS -->
+            </div>
+        </div>
+
+        <!-- Goalscorers -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8">
+            <div class="p-4 rounded-2xl bg-white dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50">
+                <h3 class="text-xs font-semibold text-gold-500 uppercase tracking-widest mb-3">Your Team — Goals</h3>
+                <div id="result-user-goals" class="space-y-1.5 text-sm text-navy-900 dark:text-white">
+                    <p class="text-gray-400 text-xs">No goals</p>
+                </div>
+            </div>
+            <div class="p-4 rounded-2xl bg-white dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50">
+                <h3 class="text-xs font-semibold text-gold-500 uppercase tracking-widest mb-3">AI Select XI — Goals</h3>
+                <div id="result-ai-goals" class="space-y-1.5 text-sm text-navy-900 dark:text-white">
+                    <p class="text-gray-400 text-xs">No goals</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Substitutions -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8">
+            <div class="p-4 rounded-2xl bg-white dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50">
+                <h3 class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">Your Team — Substitutions</h3>
+                <div id="result-user-subs" class="space-y-1.5 text-sm text-navy-900 dark:text-white">
+                    <p class="text-gray-400 text-xs">No substitutions</p>
+                </div>
+            </div>
+            <div class="p-4 rounded-2xl bg-white dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50">
+                <h3 class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">AI Select XI — Substitutions</h3>
+                <div id="result-ai-subs" class="space-y-1.5 text-sm text-navy-900 dark:text-white">
+                    <p class="text-gray-400 text-xs">No substitutions</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Man of the Match -->
+        <div id="result-motm" class="max-w-sm mx-auto mb-8 p-5 rounded-2xl bg-gradient-to-br from-gold-50 to-gold-100/50 dark:from-gold-500/10 dark:to-gold-500/5 border-2 border-gold-500/30 text-center">
+            <p class="text-[10px] font-bold text-gold-600 dark:text-gold-400 uppercase tracking-widest mb-3">⭐ Man of the Match</p>
+            <div id="motm-card" class="inline-block w-24 sm:w-28 mb-3">
+                <div class="aspect-[3/4] player-card-img rounded-xl overflow-hidden border border-gold-500/30">
+                    <img id="motm-frame" src="" alt="" class="frame-layer"
+                        onerror="this.src=window.DEFAULT_FRAME_IMAGE_URL">
+                    <img id="motm-player" src="" alt="" class="player-layer"
+                        onerror="this.src=window.DEFAULT_PLAYER_IMAGE_URL">
+                </div>
+            </div>
+            <h4 id="motm-name" class="font-extrabold text-navy-900 dark:text-white text-base sm:text-lg"></h4>
+            <p id="motm-details" class="text-xs text-gray-500 dark:text-gray-400 mt-1"></p>
+            <div id="motm-rating"
+                class="inline-block mt-2 px-3 py-1 rounded-full bg-gold-500 text-navy-950 font-black text-sm"></div>
+        </div>
+
+        <!-- Match Analysis -->
+        <div class="max-w-2xl mx-auto mb-8 p-4 rounded-2xl bg-gray-50 dark:bg-navy-900/50 border border-gray-200/50 dark:border-navy-800/50">
+            <h3 class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Match Analysis</h3>
+            <p id="result-analysis" class="text-sm text-navy-800 dark:text-gray-300 leading-relaxed"></p>
+        </div>
+
+        <!-- Play Again -->
+        <div class="text-center">
+            <button id="btn-play-again"
+                class="px-8 py-3 rounded-xl bg-gold-500 hover:bg-gold-600 text-navy-950 font-bold text-sm uppercase tracking-wider transition-all duration-300 hover:shadow-xl hover:shadow-gold-500/20 cursor-pointer">
+                Play Again 🔄
+            </button>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block scripts %}
+<!-- Inject data for JS -->
+<script>
+    window.MSIM_PLAYERS = {{ players_json | safe }};
+    window.MSIM_FORMATIONS = {{ formations_json | safe }};
+</script>
+<script src="{{ url_for('static', filename='js/match_simulator.js') }}"></script>
+{% endblock %}

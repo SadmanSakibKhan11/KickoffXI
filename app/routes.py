@@ -9,15 +9,21 @@ Page Routes:
     /teams              — All teams
     /teams/<nationality>— Team detail page
     /dashboard          — User dashboard (UI only)
+    /match-simulator    — Match Simulator wizard
 
 API Routes:
     /api/players        — List/search players (JSON)
     /api/players/<id>   — Single player detail (JSON)
     /api/teams          — List teams with player counts (JSON)
+    /api/match-simulator/validate-squad — Validate squad composition (JSON)
+    /api/match-simulator/simulate       — Run match simulation (JSON)
 """
 
 from flask import Blueprint, render_template, request, jsonify, current_app
 import random
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Blueprint for the main site
 main_bp = Blueprint('main', __name__)
@@ -256,4 +262,158 @@ def api_teams():
     """API: List all teams with player counts."""
     teams = current_app.data_loader.get_teams(COUNTRY_FLAGS)
     return jsonify({'teams': teams})
+
+
+# ============================================================
+# MATCH SIMULATOR — PAGE ROUTE
+# ============================================================
+
+@main_bp.route('/match-simulator')
+def match_simulator():
+    """
+    Match Simulator wizard page.
+    Renders the full single-page wizard for difficulty selection,
+    formation picking, squad building, and match simulation.
+    """
+    import json
+    from app.formations import FORMATIONS
+
+    all_players = current_app.data_loader.get_all_players()
+    nationalities = current_app.data_loader.nationalities
+    positions = sorted(list(set(p.primary_position for p in all_players)))
+
+    # Serialize players and formations for JS
+    players_json = json.dumps([p.to_dict() for p in all_players], default=str)
+    formations_json = json.dumps(FORMATIONS, default=str)
+
+    return render_template(
+        'match_simulator.html',
+        players_json=players_json,
+        formations_json=formations_json,
+        nationalities=nationalities,
+        positions=positions,
+        flags=COUNTRY_FLAGS,
+    )
+
+
+# ============================================================
+# MATCH SIMULATOR — API ROUTES
+# ============================================================
+
+@main_bp.route('/api/match-simulator/validate-squad', methods=['POST'])
+def api_validate_squad():
+    """
+    API: Validate a submitted squad (Starting XI + bench).
+    Returns {valid: bool, errors: [...]}.
+    """
+    from app.match_validation import validate_squad
+    from app.formations import FORMATIONS
+
+    try:
+        data = request.get_json(force=True)
+    except Exception:
+        return jsonify({'valid': False, 'errors': ['Invalid or missing JSON body.']}), 400
+
+    if not data:
+        return jsonify({'valid': False, 'errors': ['Empty request body.']}), 400
+
+    formation_name = data.get('formation', '')
+    starting_xi = data.get('starting_xi', [])
+    bench = data.get('bench', [])
+
+    players_by_id = current_app.data_loader.players_by_id
+
+    result = validate_squad(
+        formation_name=formation_name,
+        starting_xi=starting_xi,
+        bench=bench,
+        players_by_id=players_by_id,
+        formations_dict=FORMATIONS,
+    )
+
+    status = 200 if result['valid'] else 400
+    return jsonify(result), status
+
+
+@main_bp.route('/api/match-simulator/simulate', methods=['POST'])
+def api_simulate_match():
+    """
+    API: Run a full match simulation.
+    Accepts difficulty, formation, starting XI, and bench.
+    Returns complete match result JSON.
+    """
+    from app.match_validation import validate_squad
+    from app.match_engine import simulate_match
+    from app.formations import FORMATIONS
+
+    try:
+        data = request.get_json(force=True)
+    except Exception:
+        return jsonify({'error': 'Invalid or missing JSON body.'}), 400
+
+    if not data:
+        return jsonify({'error': 'Empty request body.'}), 400
+
+    difficulty = data.get('difficulty', 'normal').lower()
+    formation_name = data.get('formation', '')
+    starting_xi_data = data.get('starting_xi', [])
+    bench_data = data.get('bench', [])
+
+    # Validate difficulty
+    if difficulty not in ('easy', 'normal', 'hard'):
+        return jsonify({'error': f"Invalid difficulty '{difficulty}'. Use: easy, normal, hard."}), 400
+
+    # Validate formation
+    formation_slots = FORMATIONS.get(formation_name)
+    if not formation_slots:
+        return jsonify({'error': f"Invalid formation '{formation_name}'."}), 400
+
+    players_by_id = current_app.data_loader.players_by_id
+
+    # Defensive re-validation before simulation
+    validation = validate_squad(
+        formation_name=formation_name,
+        starting_xi=starting_xi_data,
+        bench=bench_data,
+        players_by_id=players_by_id,
+        formations_dict=FORMATIONS,
+    )
+    if not validation['valid']:
+        return jsonify({'error': 'Squad validation failed.', 'errors': validation['errors']}), 400
+
+    # Resolve player objects
+    try:
+        user_starting_xi = []
+        for entry in starting_xi_data:
+            pid = entry['player_id']
+            player = players_by_id.get(pid)
+            if not player:
+                return jsonify({'error': f'Player ID {pid} not found.'}), 400
+            user_starting_xi.append(player)
+
+        user_bench = []
+        for entry in bench_data:
+            pid = entry['player_id']
+            player = players_by_id.get(pid)
+            if not player:
+                return jsonify({'error': f'Player ID {pid} not found.'}), 400
+            user_bench.append(player)
+    except (KeyError, TypeError) as e:
+        logger.error(f"[ERROR] Malformed squad data: {e}")
+        return jsonify({'error': 'Malformed squad data.'}), 400
+
+    # Run simulation
+    try:
+        all_players = current_app.data_loader.players
+        result = simulate_match(
+            user_starting_xi_players=user_starting_xi,
+            user_bench_players=user_bench,
+            formation_slots=formation_slots,
+            difficulty=difficulty,
+            all_players=all_players,
+        )
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"[ERROR] Match simulation failed: {e}")
+        return jsonify({'error': 'An internal error occurred during simulation.'}), 500
 

@@ -200,8 +200,8 @@ select {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 100px;
-    height: 100px;
+    width: 85px;
+    height: 85px;
     border-radius: 50%;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -352,6 +352,139 @@ select {
         height: 4px;
     }
     .champion-bench-scroll::-webkit-scrollbar-thumb {
+        background: rgba(212, 160, 23, 0.3);
+        border-radius: 2px;
+    }
+}
+
+/* ============================================
+   Match Simulator — Football Pitch
+   ============================================ */
+.match-sim-pitch {
+    background: linear-gradient(180deg, #14532d 0%, #166534 30%, #15803d 50%, #166534 70%, #14532d 100%);
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.25rem;
+    border: 2px solid rgba(34, 197, 94, 0.2);
+}
+
+/* Pitch field lines (decorative) */
+.match-sim-pitch::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 5%;
+    right: 5%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.match-sim-pitch::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 85px;
+    height: 85px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Pitch grass stripe pattern */
+.match-sim-pitch-stripes {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        180deg,
+        transparent,
+        transparent 11%,
+        rgba(255, 255, 255, 0.015) 11%,
+        rgba(255, 255, 255, 0.015) 22%
+    );
+    pointer-events: none;
+}
+
+/* ============================================
+   Match Simulator — Pitch Slots
+   ============================================ */
+.match-sim-slot {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.match-sim-slot:hover {
+    transform: translateY(-3px);
+}
+
+.match-sim-slot-empty {
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.04);
+    transition: all 0.3s ease;
+}
+
+.match-sim-slot-empty:hover {
+    border-color: rgba(212, 160, 23, 0.4);
+    background: rgba(212, 160, 23, 0.08);
+}
+
+.match-sim-slot.filled:hover {
+    filter: brightness(1.08);
+}
+
+/* ============================================
+   Match Simulator — Bench Slots
+   ============================================ */
+.match-sim-bench-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 3/4;
+    border: 2px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, rgba(30, 45, 77, 0.6) 0%, rgba(10, 15, 26, 0.6) 100%);
+    transition: all 0.3s ease;
+}
+
+.match-sim-bench-empty:hover {
+    border-color: rgba(212, 160, 23, 0.35);
+    background: linear-gradient(135deg, rgba(30, 45, 77, 0.8) 0%, rgba(10, 15, 26, 0.8) 100%);
+}
+
+/* ============================================
+   Match Simulator — Animation Overlay
+   ============================================ */
+@keyframes simPulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
+}
+
+#step-animation {
+    background: radial-gradient(ellipse at center, #141e33 0%, #0a0f1a 60%, #050810 100%);
+}
+
+/* ============================================
+   Match Simulator — Bench Mobile Scroll
+   ============================================ */
+@media (max-width: 640px) {
+    #bench-slots {
+        display: flex;
+        overflow-x: auto;
+        gap: 0.75rem;
+        padding-bottom: 0.5rem;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+    }
+    #bench-slots > * {
+        flex: 0 0 130px;
+        scroll-snap-align: start;
+    }
+    #bench-slots::-webkit-scrollbar {
+        height: 4px;
+    }
+    #bench-slots::-webkit-scrollbar-thumb {
         background: rgba(212, 160, 23, 0.3);
         border-radius: 2px;
     }

@@ -5,47 +5,47 @@
 {% block content %}
 
 <!-- Page Header -->
-<section class="bg-gradient-to-b from-navy-50 to-white dark:from-navy-900 dark:to-navy-950 py-12 sm:py-14">
+<section class="bg-gradient-to-b from-navy-50 to-white dark:from-navy-900 dark:to-navy-950 py-8 sm:py-10">
     <div class="container-main">
         <div class="max-w-2xl animate-fade-in-up">
-            <span class="text-gold-500 text-sm font-semibold uppercase tracking-widest">Database</span>
-            <h1 class="text-3xl sm:text-4xl font-extrabold text-navy-900 dark:text-white mt-2">Player Database</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-2.5 text-base">Browse and search across all tournament players</p>
+            <span class="text-gold-500 text-xs font-semibold uppercase tracking-widest">Database</span>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-navy-900 dark:text-white mt-1.5">Player Database</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm sm:text-base">Browse and search across all tournament players</p>
         </div>
     </div>
 </section>
 
 <!-- Search & Filters -->
-<section class="container-main -mt-6 relative z-10">
-    <div class="bg-white dark:bg-navy-900 rounded-2xl border border-gray-200/50 dark:border-navy-800/50 shadow-lg shadow-navy-900/5 dark:shadow-none p-3 sm:p-5">
-        <div class="flex flex-col lg:flex-row gap-4">
+<section class="container-main -mt-5 relative z-10">
+    <div class="bg-white dark:bg-navy-900 rounded-2xl border border-gray-200/50 dark:border-navy-800/50 shadow-lg shadow-navy-900/5 dark:shadow-none p-2.5 sm:p-4">
+        <div class="flex flex-col lg:flex-row gap-3">
             <!-- Search Input -->
             <div class="flex-1 relative">
-                <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"/>
                 </svg>
                 <input id="player-search" type="text" placeholder="Search by name, nationality, position..."
                        value="{{ initial_query }}"
-                       class="w-full pl-12 pr-4 py-2.5 rounded-xl bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-navy-900 dark:text-white placeholder-gray-400 outline-none focus:border-gold-500 dark:focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition-all">
+                       class="w-full pl-10 pr-3.5 py-2 rounded-xl bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-navy-900 dark:text-white placeholder-gray-400 outline-none focus:border-gold-500 dark:focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition-all text-sm">
             </div>
 
             <!-- Filter Dropdowns -->
-            <div class="flex flex-col sm:flex-row gap-3">
-                <select id="filter-nationality" class="px-3.5 py-2.5 rounded-xl bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-navy-900 dark:text-white outline-none focus:border-gold-500 transition-all text-sm cursor-pointer">
+            <div class="flex flex-col sm:flex-row gap-2.5">
+                <select id="filter-nationality" class="px-3 py-2 rounded-xl bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-navy-900 dark:text-white outline-none focus:border-gold-500 transition-all text-xs sm:text-sm cursor-pointer">
                     <option value="">All Nations</option>
                     {% for nat in nationalities %}
                     <option value="{{ nat }}">{{ nat }}</option>
                     {% endfor %}
                 </select>
 
-                <select id="filter-primary" class="px-3.5 py-2.5 rounded-xl bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-navy-900 dark:text-white outline-none focus:border-gold-500 transition-all text-sm cursor-pointer">
+                <select id="filter-primary" class="px-3 py-2 rounded-xl bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-navy-900 dark:text-white outline-none focus:border-gold-500 transition-all text-xs sm:text-sm cursor-pointer">
                     <option value="">All Positions</option>
                     {% for pos in positions %}
                     <option value="{{ pos }}">{{ pos }}</option>
                     {% endfor %}
                 </select>
 
-                <select id="filter-secondary" class="px-3.5 py-2.5 rounded-xl bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-navy-900 dark:text-white outline-none focus:border-gold-500 transition-all text-sm cursor-pointer">
+                <select id="filter-secondary" class="px-3 py-2 rounded-xl bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 text-navy-900 dark:text-white outline-none focus:border-gold-500 transition-all text-xs sm:text-sm cursor-pointer">
                     <option value="">Secondary Position</option>
                     {% for pos in secondary_positions %}
                     <option value="{{ pos }}">{{ pos }}</option>
@@ -57,13 +57,13 @@
 </section>
 
 <!-- Player Count -->
-<div class="container-main mt-6 mb-3">
-    <p id="player-count" class="text-sm text-gray-400 dark:text-gray-500 font-medium">{{ players|length }} player{{ 's' if players|length != 1 }}</p>
+<div class="container-main mt-4 mb-2.5">
+    <p id="player-count" class="text-xs sm:text-sm text-gray-400 dark:text-gray-500 font-medium">{{ players|length }} player{{ 's' if players|length != 1 }}</p>
 </div>
 
 <!-- Player Grid -->
-<section class="container-main pb-14">
-    <div id="player-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+<section class="container-main pb-10">
+    <div id="player-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3.5">
         {% for player in players %}
         <div class="player-card group cursor-pointer" onclick="openPlayerModal({{ player.id }})">
             <div class="relative overflow-hidden rounded-2xl bg-gray-50 dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50 hover:border-gold-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-navy-900/5 dark:hover:shadow-gold-500/5 hover:-translate-y-1">
@@ -79,7 +79,7 @@
                     <div class="flex items-center gap-1.5 mt-1">
                         <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{{ flag_img(flags.get(player.nationality, ''), 16) }} {{ player.nationality }}</span>
                     </div>
-                    <div class="mt-2">
+                    <div class="mt-1.5">
                         <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-navy-100 text-navy-700 dark:bg-navy-800 dark:text-navy-200">{{ player.primary_position }}</span>
                     </div>
                 </div>
@@ -89,12 +89,12 @@
     </div>
 
     <!-- No Results Message -->
-    <div id="no-results" class="hidden text-center py-20">
-        <svg class="w-16 h-16 text-gray-300 dark:text-navy-700 mx-auto" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
+    <div id="no-results" class="hidden text-center py-16">
+        <svg class="w-12 h-12 text-gray-300 dark:text-navy-700 mx-auto" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"/>
         </svg>
-        <p class="text-gray-400 dark:text-gray-500 mt-4 text-lg">No players found</p>
-        <p class="text-gray-300 dark:text-gray-600 mt-1 text-sm">Try adjusting your search or filters</p>
+        <p class="text-gray-400 dark:text-gray-500 mt-3 text-base">No players found</p>
+        <p class="text-gray-300 dark:text-gray-600 mt-1 text-xs sm:text-sm">Try adjusting your search or filters</p>
     </div>
 </section>
 

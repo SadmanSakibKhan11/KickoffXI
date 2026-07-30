@@ -96,7 +96,7 @@
                    dark:bg-navy-950 dark:text-gray-100;
         }
         .container-main {
-            @apply max-w-6xl mx-auto px-4 sm:px-5 lg:px-7;
+            @apply max-w-5xl mx-auto px-3.5 sm:px-5 lg:px-6;
         }
 
         /* Animations */
@@ -132,32 +132,34 @@
     <header
         class="sticky top-0 z-50 w-full bg-white/80 dark:bg-navy-950/80 backdrop-blur-md border-b border-gray-200/50 dark:border-navy-800/50">
         <div class="container-main">
-            <div class="flex items-center justify-between h-14 sm:h-16">
+            <div class="flex items-center justify-between h-12 sm:h-14">
 
                 <!-- Logo -->
                 <a href="/" class="flex items-center gap-2 group">
                     {% if logo_url %}
-                    <img src="{{ logo_url }}" alt="{{ config.APP_NAME }}" class="h-7 sm:h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105" onerror="this.style.display='none';">
+                    <img src="{{ logo_url }}" alt="{{ config.APP_NAME }}" class="h-6 sm:h-7 w-auto object-contain transition-transform duration-300 group-hover:scale-105" onerror="this.style.display='none';">
                     {% else %}
-                    <img src="{{ url_for('static', filename='img/branding/logo.png') }}" alt="{{ config.APP_NAME }}" class="h-7 sm:h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105" onerror="this.style.display='none';">
+                    <img src="{{ url_for('static', filename='img/branding/logo.png') }}" alt="{{ config.APP_NAME }}" class="h-6 sm:h-7 w-auto object-contain transition-transform duration-300 group-hover:scale-105" onerror="this.style.display='none';">
                     {% endif %}
-                    <span class="font-black text-base sm:text-lg tracking-wider text-navy-950 dark:text-white uppercase">
+                    <span class="font-black text-sm sm:text-base tracking-wider text-navy-950 dark:text-white uppercase">
                         {{ config.APP_NAME }}
                     </span>
                 </a>
 
                 <!-- Desktop Navigation -->
-                <nav class="hidden md:flex items-center gap-6">
+                <nav class="hidden md:flex items-center gap-5">
                     <a href="/"
-                        class="hover-border relative py-2 text-sm uppercase tracking-wider font-medium {% if request.path == '/' %}active text-navy-950 dark:text-white font-semibold{% else %}text-navy-500 hover:text-navy-950 dark:text-gray-400 dark:hover:text-white{% endif %} transition-colors">Home</a>
+                        class="hover-border relative py-1.5 text-xs sm:text-sm uppercase tracking-wider font-medium {% if request.path == '/' %}active text-navy-950 dark:text-white font-semibold{% else %}text-navy-500 hover:text-navy-950 dark:text-gray-400 dark:hover:text-white{% endif %} transition-colors">Home</a>
                     <a href="/players"
-                        class="hover-border relative py-2 text-sm uppercase tracking-wider font-medium {% if '/players' in request.path %}active text-navy-950 dark:text-white font-semibold{% else %}text-navy-500 hover:text-navy-950 dark:text-gray-400 dark:hover:text-white{% endif %} transition-colors">Players</a>
+                        class="hover-border relative py-1.5 text-xs sm:text-sm uppercase tracking-wider font-medium {% if '/players' in request.path %}active text-navy-950 dark:text-white font-semibold{% else %}text-navy-500 hover:text-navy-950 dark:text-gray-400 dark:hover:text-white{% endif %} transition-colors">Players</a>
                     <a href="/teams"
-                        class="hover-border relative py-2 text-sm uppercase tracking-wider font-medium {% if '/teams' in request.path and '/champions' not in request.path %}active text-navy-950 dark:text-white font-semibold{% else %}text-navy-500 hover:text-navy-950 dark:text-gray-400 dark:hover:text-white{% endif %} transition-colors">Teams</a>
+                        class="hover-border relative py-1.5 text-xs sm:text-sm uppercase tracking-wider font-medium {% if '/teams' in request.path and '/champions' not in request.path and '/match-simulator' not in request.path %}active text-navy-950 dark:text-white font-semibold{% else %}text-navy-500 hover:text-navy-950 dark:text-gray-400 dark:hover:text-white{% endif %} transition-colors">Teams</a>
+                    <a href="/match-simulator"
+                        class="hover-border relative py-1.5 text-xs sm:text-sm uppercase tracking-wider font-medium {% if '/match-simulator' in request.path %}active text-navy-950 dark:text-white font-semibold{% else %}text-navy-500 hover:text-navy-950 dark:text-gray-400 dark:hover:text-white{% endif %} transition-colors">⚽ Simulator</a>
                     <a href="/champions"
-                        class="hover-border relative py-2 text-sm uppercase tracking-wider font-medium {% if '/champions' in request.path %}active text-navy-950 dark:text-white font-semibold{% else %}text-navy-500 hover:text-navy-950 dark:text-gray-400 dark:hover:text-white{% endif %} transition-colors">🏆 Champions</a>
+                        class="hover-border relative py-1.5 text-xs sm:text-sm uppercase tracking-wider font-medium {% if '/champions' in request.path %}active text-navy-950 dark:text-white font-semibold{% else %}text-navy-500 hover:text-navy-950 dark:text-gray-400 dark:hover:text-white{% endif %} transition-colors">🏆 Champions</a>
                     <a href="/dashboard"
-                        class="hover-border relative py-2 text-sm uppercase tracking-wider font-medium {% if '/dashboard' in request.path %}active text-navy-950 dark:text-white font-semibold{% else %}text-navy-500 hover:text-navy-950 dark:text-gray-400 dark:hover:text-white{% endif %} transition-colors">My
+                        class="hover-border relative py-1.5 text-xs sm:text-sm uppercase tracking-wider font-medium {% if '/dashboard' in request.path %}active text-navy-950 dark:text-white font-semibold{% else %}text-navy-500 hover:text-navy-950 dark:text-gray-400 dark:hover:text-white{% endif %} transition-colors">My
                         Squad</a>
                 </nav>
 
@@ -206,7 +208,9 @@
             <a href="/players"
                 class="block px-3 py-2.5 rounded-lg text-sm uppercase tracking-wider font-semibold {% if '/players' in request.path %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">Players</a>
             <a href="/teams"
-                class="block px-3 py-2.5 rounded-lg text-sm uppercase tracking-wider font-semibold {% if '/teams' in request.path and '/champions' not in request.path %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">Teams</a>
+                class="block px-3 py-2.5 rounded-lg text-sm uppercase tracking-wider font-semibold {% if '/teams' in request.path and '/champions' not in request.path and '/match-simulator' not in request.path %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">Teams</a>
+            <a href="/match-simulator"
+                class="block px-3 py-2.5 rounded-lg text-sm uppercase tracking-wider font-semibold {% if '/match-simulator' in request.path %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">⚽ Simulator</a>
             <a href="/champions"
                 class="block px-3 py-2.5 rounded-lg text-sm uppercase tracking-wider font-semibold {% if '/champions' in request.path %}bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400{% else %}text-navy-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-navy-900{% endif %} transition-all">🏆 Champions</a>
             <a href="/dashboard"
@@ -232,11 +236,11 @@
 
         <!-- Modal Content -->
         <div id="modal-content"
-            class="relative w-full max-w-md bg-white dark:bg-navy-900 rounded-2xl shadow-2xl overflow-hidden opacity-0 scale-95 transition-all duration-300">
+            class="relative w-full max-w-sm bg-white dark:bg-navy-900 rounded-2xl shadow-2xl overflow-hidden opacity-0 scale-95 transition-all duration-300">
             <!-- Close button -->
             <button id="modal-close"
-                class="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-white/80 dark:bg-navy-800/80 hover:bg-white dark:hover:bg-navy-800 text-gray-500 dark:text-gray-400 transition-all cursor-pointer">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                class="absolute top-2.5 right-2.5 z-10 p-1.5 rounded-full bg-white/80 dark:bg-navy-800/80 hover:bg-white dark:hover:bg-navy-800 text-gray-500 dark:text-gray-400 transition-all cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
@@ -250,23 +254,23 @@
             </div>
 
             <!-- Player Info -->
-            <div class="p-5 sm:p-6">
-                <h2 id="modal-player-name" class="text-xl sm:text-2xl font-extrabold text-navy-900 dark:text-white">
+            <div class="p-4 sm:p-5">
+                <h2 id="modal-player-name" class="text-lg sm:text-xl font-extrabold text-navy-900 dark:text-white">
                 </h2>
 
-                <div class="flex items-center gap-2.5 mt-2.5">
-                    <span id="modal-player-nationality" class="text-gray-500 dark:text-gray-400 text-base"></span>
+                <div class="flex items-center gap-2 mt-2">
+                    <span id="modal-player-nationality" class="text-gray-500 dark:text-gray-400 text-sm"></span>
                 </div>
 
-                <div class="flex flex-wrap gap-2.5 mt-4">
-                    <div class="px-3 py-1.5 rounded-lg bg-navy-100 dark:bg-navy-800">
-                        <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Position</span>
-                        <p id="modal-player-primary" class="font-bold text-navy-900 dark:text-white mt-0.5"></p>
+                <div class="flex flex-wrap gap-2 mt-3.5">
+                    <div class="px-2.5 py-1 rounded-lg bg-navy-100 dark:bg-navy-800">
+                        <span class="text-[11px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">Position</span>
+                        <p id="modal-player-primary" class="font-bold text-xs sm:text-sm text-navy-900 dark:text-white mt-0.5"></p>
                     </div>
                     <div id="modal-secondary-container"
-                        class="px-3 py-1.5 rounded-lg bg-gold-50 dark:bg-gold-500/10 hidden">
-                        <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Secondary</span>
-                        <p id="modal-player-secondary" class="font-bold text-gold-700 dark:text-gold-400 mt-0.5"></p>
+                        class="px-2.5 py-1 rounded-lg bg-gold-50 dark:bg-gold-500/10 hidden">
+                        <span class="text-[11px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">Secondary</span>
+                        <p id="modal-player-secondary" class="font-bold text-xs sm:text-sm text-gold-700 dark:text-gold-400 mt-0.5"></p>
                     </div>
                 </div>
             </div>
@@ -277,7 +281,7 @@
          FOOTER
          ════════════════════════════════════════════ -->
     <footer class="border-t border-gray-200 dark:border-navy-800/50">
-        <div class="container-main py-8">
+        <div class="container-main py-6">
             <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <p class="text-sm text-gray-400 dark:text-gray-500">
                     &copy; 2026 {{ config.APP_NAME }}

@@ -199,13 +199,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         <img src="${player.player_image_url}" alt="${player.name}" class="player-layer"
                              onerror="this.src='${window.DEFAULT_PLAYER_IMAGE_URL}'" loading="lazy">
                     </div>
-                    <div class="p-4">
-                        <h3 class="font-bold text-navy-900 dark:text-white text-lg truncate">${player.name}</h3>
-                        <div class="flex items-center gap-2 mt-1.5">
-                            <span class="text-sm text-gray-500 dark:text-gray-400">${flagImgHtml(player.nationality)} ${player.nationality}</span>
+                    <div class="p-2.5 sm:p-3">
+                        <h3 class="font-bold text-navy-900 dark:text-white text-xs sm:text-sm truncate">${player.name}</h3>
+                        <div class="flex items-center gap-1.5 mt-1">
+                            <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">${flagImgHtml(player.nationality)} ${player.nationality}</span>
                         </div>
-                        <div class="mt-2">
-                            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-navy-100 text-navy-700 dark:bg-navy-800 dark:text-navy-200">${player.primary_position}</span>
+                        <div class="mt-1.5">
+                            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-navy-100 text-navy-700 dark:bg-navy-800 dark:text-navy-200">${player.primary_position}</span>
                         </div>
                     </div>
                 </div>
