@@ -222,10 +222,84 @@
 </div>
 
 
+<!-- ── STEP 2.5: SQUAD REVEAL ────────────── -->
+<section id="step-squad-reveal" class="hidden">
+    <div class="container-main py-8 sm:py-12">
+        <div class="text-center mb-8 animate-fade-in-up">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-gold-500/15 border border-gold-500/25 mb-4">
+                <span class="w-2 h-2 rounded-full bg-gold-400 animate-pulse"></span>
+                <span class="text-gold-600 dark:text-gold-400 text-[11px] font-semibold uppercase tracking-widest">Pre-Match Preview</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black text-navy-900 dark:text-white tracking-tight">
+                Squad Lineup
+            </h2>
+            <p class="text-gray-500 dark:text-gray-400 mt-2 max-w-md mx-auto text-sm">
+                Review both teams before kick off
+            </p>
+        </div>
+
+        <!-- Two-column team comparison -->
+        <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 md:gap-6 mb-8">
+
+            <!-- YOUR TEAM -->
+            <div>
+                <h3 class="text-center text-xs font-semibold text-gold-500 uppercase tracking-widest mb-4">Your Team</h3>
+                <!-- User Pitch -->
+                <div class="match-sim-pitch p-3 sm:p-5 lg:p-6 mb-4">
+                    <div class="match-sim-pitch-stripes"></div>
+                    <div id="reveal-user-pitch" class="relative z-10 space-y-4 sm:space-y-6">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+                <!-- User Bench -->
+                <h4 class="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Bench</h4>
+                <div id="reveal-user-bench" class="reveal-bench-grid grid grid-cols-4 sm:grid-cols-7 gap-2">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- VS Divider -->
+            <div class="squad-reveal-vs py-4 md:py-0">
+                <div class="vs-line hidden md:block"></div>
+                <div class="vs-text">VS</div>
+                <div class="vs-line hidden md:block"></div>
+            </div>
+
+            <!-- AI TEAM -->
+            <div>
+                <h3 class="text-center text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">AI Select XI</h3>
+                <!-- AI Pitch -->
+                <div class="match-sim-pitch p-3 sm:p-5 lg:p-6 mb-4">
+                    <div class="match-sim-pitch-stripes"></div>
+                    <div id="reveal-ai-pitch" class="relative z-10 space-y-4 sm:space-y-6">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+                <!-- AI Bench -->
+                <h4 class="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Bench</h4>
+                <div id="reveal-ai-bench" class="reveal-bench-grid grid grid-cols-4 sm:grid-cols-7 gap-2">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Kick Off Button -->
+        <div class="text-center mt-8">
+            <button id="btn-kick-off"
+                class="px-8 py-3 rounded-xl bg-gold-500 hover:bg-gold-600 text-navy-950 font-bold text-sm sm:text-base uppercase tracking-wider transition-all duration-300 hover:shadow-xl hover:shadow-gold-500/20 hover:-translate-y-0.5 cursor-pointer">
+                ⚽ Kick Off
+            </button>
+        </div>
+    </div>
+</section>
+
+
 <!-- ── STEP 3: MATCH ANIMATION ────────────── -->
 <div id="step-animation" class="hidden fixed inset-0 z-[130] flex items-center justify-center bg-navy-950">
     <div class="text-center">
         <div id="anim-stage" class="text-3xl sm:text-5xl font-black text-white uppercase tracking-widest opacity-0 transition-opacity duration-500">
+        </div>
+        <div id="anim-events" class="mt-3 text-gold-400 text-base sm:text-lg font-semibold min-h-[2rem]">
         </div>
         <div class="mt-4 flex justify-center">
             <div class="w-8 h-8 border-3 border-gold-500 border-t-transparent rounded-full animate-spin"></div>
@@ -303,7 +377,7 @@
         <div id="result-motm" class="max-w-sm mx-auto mb-8 p-5 rounded-2xl bg-gradient-to-br from-gold-50 to-gold-100/50 dark:from-gold-500/10 dark:to-gold-500/5 border-2 border-gold-500/30 text-center">
             <p class="text-[10px] font-bold text-gold-600 dark:text-gold-400 uppercase tracking-widest mb-3">⭐ Man of the Match</p>
             <div id="motm-card" class="inline-block w-24 sm:w-28 mb-3">
-                <div class="aspect-[3/4] player-card-img rounded-xl overflow-hidden border border-gold-500/30">
+                <div class="aspect-[3/4] player-card-img rounded-xl overflow-hidden motm-glow">
                     <img id="motm-frame" src="" alt="" class="frame-layer"
                         onerror="this.src=window.DEFAULT_FRAME_IMAGE_URL">
                     <img id="motm-player" src="" alt="" class="player-layer"
@@ -312,8 +386,28 @@
             </div>
             <h4 id="motm-name" class="font-extrabold text-navy-900 dark:text-white text-base sm:text-lg"></h4>
             <p id="motm-details" class="text-xs text-gray-500 dark:text-gray-400 mt-1"></p>
-            <div id="motm-rating"
-                class="inline-block mt-2 px-3 py-1 rounded-full bg-gold-500 text-navy-950 font-black text-sm"></div>
+            <div class="flex items-center justify-center gap-2 mt-2">
+                <span id="motm-overall" class="ovr-badge font-extrabold text-xs"></span>
+                <span id="motm-match-rating" class="match-rating-badge"></span>
+            </div>
+            <p id="motm-goals" class="text-xs text-gold-600 dark:text-gold-400 font-semibold mt-1.5 hidden"></p>
+        </div>
+
+        <!-- Player Ratings -->
+        <div class="mb-8">
+            <h3 class="text-center text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">Player Ratings</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <div class="p-4 rounded-2xl bg-white dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50">
+                    <h4 class="text-xs font-semibold text-gold-500 uppercase tracking-widest mb-3">Your Team</h4>
+                    <div id="result-user-ratings" class="space-y-1">
+                    </div>
+                </div>
+                <div class="p-4 rounded-2xl bg-white dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50">
+                    <h4 class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">AI Select XI</h4>
+                    <div id="result-ai-ratings" class="space-y-1">
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Match Analysis -->

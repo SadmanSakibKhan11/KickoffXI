@@ -4,10 +4,45 @@
  * Client-side wizard state machine for the Match Simulator feature.
  * Manages: difficulty/formation selection, pitch rendering, player
  * picker modal, bench assignment, API calls (validate + simulate),
- * match animation, and result screen rendering.
+ * squad reveal, match animation, and result screen rendering.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    // ============================================================
+    // TIMING CONFIGURATION (Feature 1 — tunable constants)
+    // ============================================================
+    const MATCH_TIMING = {
+        KICKOFF:      700,   // ms — "⚽ Kickoff" display
+        FIRST_HALF:   800,   // ms — "First Half" display (goals shown here)
+        HALF_TIME:    600,   // ms — "🔄 Half-Time" display
+        SECOND_HALF:  800,   // ms — "Second Half" display (goals shown here)
+        FULL_TIME:    700,   // ms — "🏁 Full-Time" display
+        STAGE_GAP:    200,   // ms — fade-out gap between stages
+        POST_FINAL:   400,   // ms — pause after full-time before result
+        EVENT_STAGGER: 350,  // ms — delay between individual goal events
+    };
+    // Total: ~3.5–4.5s depending on goal count (vs ~2.5s previously)
+
+    // ============================================================
+    // RATING COLOR MAPPING (Feature 5 — single source of truth)
+    // ============================================================
+    const RATING_COLORS = {
+        gold:  'rating-gold',
+        green: 'rating-green',
+        blue:  'rating-blue',
+        gray:  'rating-gray',
+        red:   'rating-red',
+    };
+
+    /**
+     * Generate a color-coded rating badge HTML string.
+     * Single reusable helper — used by MOTM, result ratings, etc.
+     */
+    function getRatingBadgeHtml(rating, ratingColor) {
+        const colorClass = RATING_COLORS[ratingColor] || 'rating-gray';
+        return `<span class="match-rating-badge ${colorClass}">${rating.toFixed(1)}</span>`;
+    }
 
     // ============================================================
     // DATA (injected from template)
@@ -24,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let startingXI = {};       // { slotIndex: playerObj }
     let bench = {};            // { benchIndex: playerObj }
     let pickerTarget = null;   // { type: 'xi'|'bench', index: number, position: string, category: string }
+    let storedSimData = null;  // Holds simulate API response for staged reveal
 
     // Set of player IDs already selected (Starting XI + bench)
     function getUsedPlayerIds() {
@@ -123,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================
     const stepSetup = document.getElementById('step-setup');
     const stepSquad = document.getElementById('step-squad');
+    const stepSquadReveal = document.getElementById('step-squad-reveal');
     const stepAnimation = document.getElementById('step-animation');
     const stepResult = document.getElementById('step-result');
 
@@ -131,6 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnStartBuilding = document.getElementById('btn-start-building');
     const btnBackSetup = document.getElementById('btn-back-setup');
     const btnSimulate = document.getElementById('btn-simulate');
+    const btnKickOff = document.getElementById('btn-kick-off');
     const btnPlayAgain = document.getElementById('btn-play-again');
 
     const formationLabel = document.getElementById('formation-label');
@@ -152,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Animation
     const animStage = document.getElementById('anim-stage');
+    const animEvents = document.getElementById('anim-events');
 
     // Flag helper
     function flagImgHtml(nationality, size = 16) {
@@ -160,6 +199,67 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!code) return '';
         const h = Math.round(size * 0.75);
         return `<img src="https://flagcdn.com/${code}.svg" alt="" width="${size}" height="${h}" style="display:inline-block;vertical-align:middle;border-radius:2px;" loading="lazy">`;
+    }
+
+
+    // ============================================================
+    // REUSABLE CARD HELPERS
+    // ============================================================
+
+    /**
+     * Generate read-only player card HTML for Squad Reveal and Result screen.
+     * Reuses the exact same visual structure as the existing player cards.
+     */
+    function renderReadOnlyCard(player, options = {}) {
+        const { showFlag = false, size = 'sm' } = options;
+        const widthClass = size === 'md'
+            ? 'w-[72px] sm:w-[95px] lg:w-[108px]'
+            : 'w-[60px] sm:w-[78px] lg:w-[90px]';
+
+        return `
+        <div class="group ${widthClass}">
+            <div class="relative overflow-hidden rounded-xl bg-gray-100 dark:bg-navy-900 border border-white/15 transition-all duration-300">
+                <div class="aspect-[3/4] player-card-img">
+                    <img src="${player.frame_image_url}" alt="" class="frame-layer"
+                         onerror="this.src=window.DEFAULT_FRAME_IMAGE_URL">
+                    <img src="${player.player_image_url}" alt="${player.name}" class="player-layer"
+                         onerror="this.src=window.DEFAULT_PLAYER_IMAGE_URL" loading="lazy">
+                </div>
+                <div class="p-1 sm:p-1.5 bg-navy-950/60 backdrop-blur-sm">
+                    <h3 class="font-bold text-white text-[9px] sm:text-[10px] truncate">${player.name}</h3>
+                    <div class="flex items-center justify-between mt-0.5">
+                        <span class="inline-block px-1 py-0.5 rounded-full text-[8px] font-semibold bg-white/10 text-white/80">${player.primary_position}</span>
+                        <span class="text-[8px] font-bold text-gold-400">${player.overall}</span>
+                    </div>
+                    ${showFlag ? `<div class="text-[7px] text-white/50 mt-0.5 truncate">${flagImgHtml(player.nationality, 8)} ${player.nationality}</div>` : ''}
+                </div>
+            </div>
+        </div>`;
+    }
+
+    /**
+     * Render a read-only bench card (slightly different styling — no pitch bg).
+     */
+    function renderReadOnlyBenchCard(player) {
+        return `
+        <div class="group">
+            <div class="relative overflow-hidden rounded-xl bg-gray-50 dark:bg-navy-900 border border-gray-200/50 dark:border-navy-800/50 transition-all duration-300">
+                <div class="aspect-[3/4] player-card-img">
+                    <img src="${player.frame_image_url}" alt="" class="frame-layer"
+                         onerror="this.src=window.DEFAULT_FRAME_IMAGE_URL">
+                    <img src="${player.player_image_url}" alt="${player.name}" class="player-layer"
+                         onerror="this.src=window.DEFAULT_PLAYER_IMAGE_URL" loading="lazy">
+                </div>
+                <div class="p-1 sm:p-1.5">
+                    <h3 class="font-bold text-navy-900 dark:text-white text-[9px] sm:text-[10px] truncate">${player.name}</h3>
+                    <div class="flex items-center justify-between mt-0.5">
+                        <span class="inline-block px-1 py-0.5 rounded-full text-[8px] font-semibold bg-navy-100 dark:bg-navy-800 text-navy-700 dark:text-navy-200">${player.primary_position}</span>
+                        <span class="text-[8px] font-bold text-gold-500">${player.overall}</span>
+                    </div>
+                    <div class="text-[7px] text-gray-400 dark:text-gray-500 mt-0.5 truncate">${flagImgHtml(player.nationality, 8)} ${player.nationality}</div>
+                </div>
+            </div>
+        </div>`;
     }
 
 
@@ -558,7 +658,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ============================================================
-    // 9. SIMULATE MATCH
+    // 9. SIMULATE MATCH (with Squad Reveal flow)
     // ============================================================
     btnSimulate?.addEventListener('click', async () => {
         hideValidationErrors();
@@ -594,7 +694,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Step 2: Simulate
+            // Step 2: Simulate (get full payload including AI squad)
             btnSimulate.textContent = 'Simulating...';
             const simRes = await fetch('/api/match-simulator/simulate', {
                 method: 'POST',
@@ -615,10 +715,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Step 3: Play animation then show result
+            // Step 3: Store simulation data and show Squad Reveal
+            storedSimData = simData;
             stepSquad.classList.add('hidden');
-            await playMatchAnimation();
-            renderResult(simData);
+            showSquadReveal(simData);
 
         } catch (err) {
             console.error('Simulation error:', err);
@@ -628,27 +728,150 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Kick Off button — proceeds from Squad Reveal to animation
+    btnKickOff?.addEventListener('click', async () => {
+        if (!storedSimData) return;
+        stepSquadReveal.classList.add('hidden');
+        await playMatchAnimation(storedSimData);
+        renderResult(storedSimData);
+    });
+
 
     // ============================================================
-    // 10. MATCH ANIMATION
+    // 10. SQUAD REVEAL RENDERING
     // ============================================================
-    async function playMatchAnimation() {
+    function showSquadReveal(data) {
+        stepSquadReveal.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // Render user team pitch
+        renderRevealPitch('reveal-user-pitch', data.user_team.starting_xi);
+        renderRevealBench('reveal-user-bench', data.user_team.bench);
+
+        // Render AI team pitch
+        renderRevealPitch('reveal-ai-pitch', data.ai_team.starting_xi);
+        renderRevealBench('reveal-ai-bench', data.ai_team.bench);
+    }
+
+    /**
+     * Render a read-only formation pitch for squad reveal.
+     * Uses the selected formation's slot layout.
+     */
+    function renderRevealPitch(containerId, players) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        const slots = formations[selectedFormation];
+        if (!slots || !players || players.length === 0) {
+            container.innerHTML = '<p class="text-white/40 text-center text-xs py-4">No players</p>';
+            return;
+        }
+
+        // Group slots by row
+        const rows = {};
+        slots.forEach((slot, idx) => {
+            const row = slot.formation_row;
+            if (!rows[row]) rows[row] = [];
+            rows[row].push({ ...slot, slotIndex: idx });
+        });
+
+        const sortedRows = Object.keys(rows).sort((a, b) => a - b);
+
+        container.innerHTML = sortedRows.map(rowKey => {
+            const rowSlots = rows[rowKey].sort((a, b) => a.formation_order - b.formation_order);
+            const gapClass = rowSlots.length <= 2 ? 'gap-3 sm:gap-6 lg:gap-8'
+                : rowSlots.length <= 3 ? 'gap-2 sm:gap-4 lg:gap-6'
+                : rowSlots.length === 4 ? 'gap-1.5 sm:gap-3 lg:gap-5'
+                : 'gap-1 sm:gap-2 lg:gap-4';
+
+            return `<div class="flex justify-center ${gapClass}">
+                ${rowSlots.map(slot => {
+                    const player = players[slot.slotIndex];
+                    if (!player) return '';
+                    return renderReadOnlyCard(player, { showFlag: true, size: 'sm' });
+                }).join('')}
+            </div>`;
+        }).join('');
+    }
+
+    /**
+     * Render a read-only bench for squad reveal.
+     */
+    function renderRevealBench(containerId, players) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        if (!players || players.length === 0) {
+            container.innerHTML = '<p class="text-gray-400 text-xs">No bench players</p>';
+            return;
+        }
+
+        container.innerHTML = players.map(p => renderReadOnlyBenchCard(p)).join('');
+    }
+
+
+    // ============================================================
+    // 11. MATCH ANIMATION (Feature 1 — increased duration + goal events)
+    // ============================================================
+    async function playMatchAnimation(simData) {
         stepAnimation.classList.remove('hidden');
-        const stages = ['⚽ Kickoff', 'First Half', '🔄 Half-Time', 'Second Half', '🏁 Full-Time'];
-        const delays = [500, 500, 500, 500, 500]; // ~2.5s total
+        if (animEvents) animEvents.innerHTML = '';
+
+        // Separate goals into first half (min <= 45) and second half (min > 45)
+        const allGoals = [
+            ...(simData?.user_team?.goalscorers || []).map(g => ({ ...g, team: 'Your Team' })),
+            ...(simData?.ai_team?.goalscorers || []).map(g => ({ ...g, team: 'AI' })),
+        ].sort((a, b) => a.minute - b.minute);
+
+        const firstHalfGoals = allGoals.filter(g => g.minute <= 45);
+        const secondHalfGoals = allGoals.filter(g => g.minute > 45);
+
+        const stages = [
+            { text: '⚽ Kickoff',     delay: MATCH_TIMING.KICKOFF,     goals: [] },
+            { text: 'First Half',     delay: MATCH_TIMING.FIRST_HALF,  goals: firstHalfGoals },
+            { text: '🔄 Half-Time',   delay: MATCH_TIMING.HALF_TIME,   goals: [] },
+            { text: 'Second Half',    delay: MATCH_TIMING.SECOND_HALF, goals: secondHalfGoals },
+            { text: '🏁 Full-Time',   delay: MATCH_TIMING.FULL_TIME,   goals: [] },
+        ];
 
         for (let i = 0; i < stages.length; i++) {
-            animStage.textContent = stages[i];
+            const stage = stages[i];
+
+            // Show stage label
+            animStage.textContent = stage.text;
             animStage.classList.remove('opacity-0');
             animStage.classList.add('opacity-100');
-            await sleep(delays[i]);
+
+            // If this stage has goals, stagger them during the stage's display window
+            if (stage.goals.length > 0 && animEvents) {
+                const goalDelay = Math.min(
+                    MATCH_TIMING.EVENT_STAGGER,
+                    Math.floor(stage.delay / (stage.goals.length + 1))
+                );
+
+                for (let g = 0; g < stage.goals.length; g++) {
+                    await sleep(goalDelay);
+                    const goal = stage.goals[g];
+                    animEvents.innerHTML = `<div class="anim-event-item">⚽ ${goal.name} ${goal.minute}'</div>`;
+                }
+                // Remaining time after last goal
+                const elapsed = stage.goals.length * goalDelay;
+                const remaining = Math.max(100, stage.delay - elapsed);
+                await sleep(remaining);
+            } else {
+                await sleep(stage.delay);
+            }
+
+            // Clear events and fade out stage (except last)
+            if (animEvents) animEvents.innerHTML = '';
             if (i < stages.length - 1) {
                 animStage.classList.remove('opacity-100');
                 animStage.classList.add('opacity-0');
-                await sleep(150);
+                await sleep(MATCH_TIMING.STAGE_GAP);
             }
         }
-        await sleep(300);
+
+        await sleep(MATCH_TIMING.POST_FINAL);
         animStage.classList.remove('opacity-100');
         animStage.classList.add('opacity-0');
         stepAnimation.classList.add('hidden');
@@ -660,7 +883,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ============================================================
-    // 11. RESULT SCREEN RENDERING
+    // 12. RESULT SCREEN RENDERING
     // ============================================================
     function renderResult(data) {
         stepResult.classList.remove('hidden');
@@ -700,6 +923,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // MOTM
         renderMOTM(data.motm, data);
+
+        // Player Ratings
+        renderPlayerRatings(data);
 
         // Analysis
         const analysisEl = document.getElementById('result-analysis');
@@ -768,12 +994,18 @@ document.addEventListener('DOMContentLoaded', () => {
         ).join('');
     }
 
+
+    // ============================================================
+    // 13. MOTM RENDERING (Enhanced — Feature 4)
+    // ============================================================
     function renderMOTM(motm, data) {
         if (!motm) return;
 
         const motmName = document.getElementById('motm-name');
         const motmDetails = document.getElementById('motm-details');
-        const motmRating = document.getElementById('motm-rating');
+        const motmOverall = document.getElementById('motm-overall');
+        const motmMatchRating = document.getElementById('motm-match-rating');
+        const motmGoals = document.getElementById('motm-goals');
         const motmFrame = document.getElementById('motm-frame');
         const motmPlayer = document.getElementById('motm-player');
 
@@ -792,12 +1024,90 @@ document.addEventListener('DOMContentLoaded', () => {
             const teamLabel = motm.team === 'user' ? 'Your Team' : 'AI Select XI';
             motmDetails.innerHTML = `${flagImgHtml(motm.nationality, 14)} ${motm.nationality} · ${motm.primary_position} · ${teamLabel}`;
         }
-        if (motmRating) motmRating.textContent = motm.rating.toFixed(1);
+
+        // Overall rating badge
+        if (motmOverall) {
+            motmOverall.innerHTML = `⭐${motm.overall}`;
+        }
+
+        // Match rating (color-coded)
+        if (motmMatchRating) {
+            const colorClass = RATING_COLORS[motm.rating_color] || 'rating-gold';
+            motmMatchRating.className = `match-rating-badge ${colorClass}`;
+            motmMatchRating.textContent = motm.rating.toFixed(1);
+        }
+
+        // Goals (only show if > 0)
+        if (motmGoals) {
+            if (motm.goals && motm.goals > 0) {
+                motmGoals.textContent = `⚽ ${motm.goals} Goal${motm.goals > 1 ? 's' : ''}`;
+                motmGoals.classList.remove('hidden');
+            } else {
+                motmGoals.classList.add('hidden');
+            }
+        }
     }
 
 
     // ============================================================
-    // 12. VALIDATION ERROR DISPLAY
+    // 14. PLAYER RATINGS RENDERING (Feature 3 + 5)
+    // ============================================================
+    function renderPlayerRatings(data) {
+        renderTeamRatings('result-user-ratings', data.user_team, data);
+        renderTeamRatings('result-ai-ratings', data.ai_team, data);
+    }
+
+    function renderTeamRatings(containerId, teamData, fullData) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        const ratings = teamData.ratings;
+        if (!ratings) {
+            container.innerHTML = '<p class="text-gray-400 text-xs">No ratings available</p>';
+            return;
+        }
+
+        let html = '';
+
+        // Starting XI ratings
+        if (ratings.starting_xi && ratings.starting_xi.length > 0) {
+            html += '<p class="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1.5">Starting XI</p>';
+            html += ratings.starting_xi.map(r => renderRatingRow(r, teamData.starting_xi)).join('');
+        }
+
+        // Bench ratings
+        if (ratings.bench && ratings.bench.length > 0) {
+            html += '<p class="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1.5 mt-3">Bench</p>';
+            html += ratings.bench.map(r => renderRatingRow(r, teamData.bench)).join('');
+        }
+
+        container.innerHTML = html;
+    }
+
+    /**
+     * Render a single player rating row.
+     * Shows flag, name, position, overall, and color-coded match rating badge.
+     */
+    function renderRatingRow(ratingEntry, playerList) {
+        // Find matching player data for additional fields
+        const player = (playerList || []).find(p => p.name === ratingEntry.name);
+        const nationality = player?.nationality || '';
+        const position = player?.primary_position || '';
+        const overall = player?.overall || '';
+
+        return `
+        <div class="flex items-center gap-2 py-1 border-b border-gray-100 dark:border-navy-800/50 last:border-0">
+            <span class="flex-shrink-0">${flagImgHtml(nationality, 12)}</span>
+            <span class="font-medium text-xs text-navy-900 dark:text-white truncate flex-1">${ratingEntry.name}</span>
+            <span class="text-[9px] text-gray-400 dark:text-gray-500 flex-shrink-0">${position}</span>
+            <span class="text-[9px] font-bold text-gold-500 flex-shrink-0 w-6 text-right">${overall}</span>
+            ${getRatingBadgeHtml(ratingEntry.rating, ratingEntry.rating_color)}
+        </div>`;
+    }
+
+
+    // ============================================================
+    // 15. VALIDATION ERROR DISPLAY
     // ============================================================
     function showValidationErrors(errors) {
         if (!validationErrors || !validationErrorList) return;
@@ -811,7 +1121,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ============================================================
-    // 13. PLAY AGAIN
+    // 16. PLAY AGAIN
     // ============================================================
     btnPlayAgain?.addEventListener('click', () => {
         // Reset state
@@ -819,9 +1129,11 @@ document.addEventListener('DOMContentLoaded', () => {
         bench = {};
         selectedDifficulty = 'normal';
         selectedFormation = '4-3-3';
+        storedSimData = null;
 
         // Reset UI
         stepResult.classList.add('hidden');
+        stepSquadReveal.classList.add('hidden');
         stepSetup.classList.remove('hidden');
         btnSimulate.disabled = true;
         btnSimulate.textContent = 'Simulate Match ⚡';

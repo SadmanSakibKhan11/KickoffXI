@@ -48,6 +48,176 @@ DIFFICULTY_CONFIG = {
     'hard':   {'pool_pct': 0.20, 'modifier_range': 1},
 }
 
+# ── Rating Tier Thresholds (for color coding) ─────────────────
+# Each tuple: (minimum_rating, tier_name, color_key)
+# Ordered descending — first match wins.
+RATING_TIERS = [
+    (9.0, 'outstanding', 'gold'),
+    (8.0, 'excellent', 'green'),
+    (7.0, 'good', 'blue'),
+    (6.0, 'average', 'gray'),
+    (0.0, 'below_average', 'red'),
+]
+
+
+def get_rating_color_tier(rating):
+    """
+    Map a numeric match rating to its display tier and color key.
+
+    Returns:
+        Tuple (tier_name, color_key) — e.g. ('excellent', 'green').
+    """
+    for threshold, tier_name, color_key in RATING_TIERS:
+        if rating >= threshold:
+            return tier_name, color_key
+    return 'below_average', 'red'
+
+
+# ════════════════════════════════════════════════════════════════
+# PLAYER RATINGS
+# ════════════════════════════════════════════════════════════════
+
+def calculate_player_ratings(user_xi, user_bench, ai_xi, ai_bench,
+                             user_scorers, ai_scorers, user_subs, ai_subs,
+                             result):
+    """
+    Generate a realistic match rating for every player in both squads.
+
+    Three involvement tiers are handled distinctly:
+        1. Starters — full rating range with maximum variance.
+        2. Substituted-on (bench players who came on) — dampened range.
+        3. Unused substitutes — narrow neutral range (5.5–6.5).
+
+    Args:
+        user_xi:      List of Player objects (user starting XI).
+        user_bench:   List of Player objects (user bench).
+        ai_xi:        List of Player objects (AI starting XI).
+        ai_bench:     List of Player objects (AI bench).
+        user_scorers: List of goalscorer dicts [{'name': ..., 'minute': ...}].
+        ai_scorers:   List of goalscorer dicts.
+        user_subs:    List of substitution dicts [{'player_on': ..., ...}].
+        ai_subs:      List of substitution dicts.
+        result:       'win', 'loss', or 'draw'.
+
+    Returns:
+        Dict with 'user' and 'ai' keys, each containing
+        'starting_xi' and 'bench' lists of rating dicts:
+        [{'name': str, 'rating': float, 'rating_color': str}, ...]
+    """
+    # Count goals per player name
+    user_goal_counts = {}
+    for s in user_scorers:
+        user_goal_counts[s['name']] = user_goal_counts.get(s['name'], 0) + 1
+
+    ai_goal_counts = {}
+    for s in ai_scorers:
+        ai_goal_counts[s['name']] = ai_goal_counts.get(s['name'], 0) + 1
+
+    # Names of bench players who came on as substitutes
+    user_subbed_on = {s['player_on'] for s in user_subs}
+    ai_subbed_on = {s['player_on'] for s in ai_subs}
+
+    def _rate_starter(player, goal_counts, team_result):
+        """Rate a player who started the match."""
+        # Base rating from overall: maps 0–99 → ~4.5–7.5
+        base = (player.overall / 99.0) * 3.0 + 4.5
+
+        # Result modifier
+        if team_result == 'win':
+            base += random.uniform(0.3, 0.7)
+        elif team_result == 'loss':
+            base += random.uniform(-0.5, -0.2)
+        else:  # draw
+            base += random.uniform(-0.2, 0.2)
+
+        # Goal bonus
+        goals = goal_counts.get(player.name, 0)
+        base += goals * 0.5
+
+        # Random variance
+        base += random.uniform(-0.4, 0.4)
+
+        return round(max(4.0, min(10.0, base)), 1)
+
+    def _rate_subbed_on(player, goal_counts, team_result):
+        """Rate a bench player who was substituted on."""
+        # Dampened base
+        base = ((player.overall / 99.0) * 3.0 + 4.5) * 0.85 + 1.0
+
+        # Dampened result modifier
+        if team_result == 'win':
+            base += random.uniform(0.15, 0.45)
+        elif team_result == 'loss':
+            base += random.uniform(-0.3, -0.1)
+        else:
+            base += random.uniform(-0.15, 0.15)
+
+        # Goal bonus (same as starter — a sub who scores deserves it)
+        goals = goal_counts.get(player.name, 0)
+        base += goals * 0.5
+
+        # Slightly tighter random variance
+        base += random.uniform(-0.3, 0.3)
+
+        return round(max(4.0, min(10.0, base)), 1)
+
+    def _rate_unused_sub(player):
+        """Rate a bench player who never came on — narrow neutral range."""
+        base = 5.8 + (player.overall / 99.0) * 0.6  # 5.8–6.4 base
+        base += random.uniform(-0.2, 0.2)
+        return round(max(5.5, min(6.5, base)), 1)
+
+    def _build_team_ratings(xi_players, bench_players, goal_counts,
+                            subbed_on_names, team_result):
+        """Build ratings for one team's full squad."""
+        xi_ratings = []
+        for p in xi_players:
+            r = _rate_starter(p, goal_counts, team_result)
+            _, color = get_rating_color_tier(r)
+            xi_ratings.append({
+                'name': p.name,
+                'rating': r,
+                'rating_color': color,
+            })
+
+        bench_ratings = []
+        for p in bench_players:
+            if p.name in subbed_on_names:
+                r = _rate_subbed_on(p, goal_counts, team_result)
+            else:
+                r = _rate_unused_sub(p)
+            _, color = get_rating_color_tier(r)
+            bench_ratings.append({
+                'name': p.name,
+                'rating': r,
+                'rating_color': color,
+            })
+
+        return {
+            'starting_xi': xi_ratings,
+            'bench': bench_ratings,
+        }
+
+    # Determine result from each team's perspective
+    user_result = result  # 'win', 'loss', or 'draw'
+    if result == 'win':
+        ai_result = 'loss'
+    elif result == 'loss':
+        ai_result = 'win'
+    else:
+        ai_result = 'draw'
+
+    return {
+        'user': _build_team_ratings(
+            user_xi, user_bench, user_goal_counts,
+            user_subbed_on, user_result,
+        ),
+        'ai': _build_team_ratings(
+            ai_xi, ai_bench, ai_goal_counts,
+            ai_subbed_on, ai_result,
+        ),
+    }
+
 
 def _get_category(position):
     """Map a position to its category. Unknown defaults to MID."""
@@ -673,6 +843,35 @@ def simulate_match(user_starting_xi_players, user_bench_players,
         motm, user_scorers, ai_scorers,
     )
 
+    # Calculate player ratings for all players in both squads
+    ratings = calculate_player_ratings(
+        user_starting_xi_players, user_bench_players,
+        ai_starting_xi, ai_bench,
+        user_scorers, ai_scorers,
+        user_subs, ai_subs,
+        result,
+    )
+
+    # Enrich MOTM with consistent rating from unified ratings data
+    if motm:
+        motm_team_key = motm['team']  # 'user' or 'ai'
+        motm_ratings_list = ratings[motm_team_key]['starting_xi']
+        motm_rating_entry = next(
+            (r for r in motm_ratings_list if r['name'] == motm['name']),
+            None,
+        )
+        if motm_rating_entry:
+            # Override the MOTM rating with the unified calculated rating
+            motm['rating'] = motm_rating_entry['rating']
+            motm['rating_color'] = motm_rating_entry['rating_color']
+        else:
+            _, color = get_rating_color_tier(motm['rating'])
+            motm['rating_color'] = color
+
+        # Add goal count to MOTM
+        all_scorers = user_scorers + ai_scorers
+        motm['goals'] = sum(1 for s in all_scorers if s['name'] == motm['name'])
+
     # Build result payload
     def _serialize_players(players):
         """Serialize a list of Player objects to dicts."""
@@ -689,6 +888,7 @@ def simulate_match(user_starting_xi_players, user_bench_players,
             'stats': stats['user'],
             'starting_xi': _serialize_players(user_starting_xi_players),
             'bench': _serialize_players(user_bench_players),
+            'ratings': ratings['user'],
         },
         'ai_team': {
             'name': 'AI Select XI',
@@ -699,7 +899,9 @@ def simulate_match(user_starting_xi_players, user_bench_players,
             'stats': stats['ai'],
             'starting_xi': _serialize_players(ai_starting_xi),
             'bench': _serialize_players(ai_bench),
+            'ratings': ratings['ai'],
         },
         'motm': motm,
         'match_analysis': analysis,
     }
+

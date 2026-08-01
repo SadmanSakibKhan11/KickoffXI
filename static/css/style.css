@@ -530,3 +530,178 @@ select {
     background: linear-gradient(135deg, #b38312 0%, #d4a017 50%, #8a640e 100%);
     border: 1px solid rgba(242, 220, 157, 0.4);
 }
+
+/* ============================================
+   Match Simulator — Squad Reveal VS Divider
+   ============================================ */
+.squad-reveal-vs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.squad-reveal-vs .vs-text {
+    font-size: 1.75rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    color: #d4a017;
+    text-shadow: 0 0 20px rgba(212, 160, 23, 0.3);
+}
+
+.squad-reveal-vs .vs-line {
+    width: 2px;
+    height: 40px;
+    background: linear-gradient(180deg,
+        transparent 0%,
+        rgba(212, 160, 23, 0.4) 50%,
+        transparent 100%
+    );
+}
+
+/* ============================================
+   Match Rating Badge (Color-Coded Pill)
+   ============================================ */
+.match-rating-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+}
+
+/* Rating color variants */
+.match-rating-badge.rating-gold {
+    background: linear-gradient(135deg, #f2dc9d 0%, #d4a017 50%, #b38312 100%);
+    color: #382805;
+    border: 1px solid rgba(212, 160, 23, 0.6);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), inset 0 1px 0.5px rgba(255, 255, 255, 0.5);
+}
+.dark .match-rating-badge.rating-gold {
+    background: linear-gradient(135deg, #b38312 0%, #d4a017 50%, #8a640e 100%);
+    color: #fdf9ed;
+    border: 1px solid rgba(242, 220, 157, 0.4);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4), inset 0 1px 0.5px rgba(255, 255, 255, 0.3);
+}
+
+.match-rating-badge.rating-green {
+    background: #16a34a;
+    color: #ffffff;
+    border: 1px solid rgba(22, 163, 74, 0.5);
+}
+.dark .match-rating-badge.rating-green {
+    background: #15803d;
+    border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.match-rating-badge.rating-blue {
+    background: #2563eb;
+    color: #ffffff;
+    border: 1px solid rgba(37, 99, 235, 0.5);
+}
+.dark .match-rating-badge.rating-blue {
+    background: #1d4ed8;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.match-rating-badge.rating-gray {
+    background: #6b7280;
+    color: #ffffff;
+    border: 1px solid rgba(107, 114, 128, 0.5);
+}
+.dark .match-rating-badge.rating-gray {
+    background: #4b5563;
+    border: 1px solid rgba(107, 114, 128, 0.4);
+}
+
+.match-rating-badge.rating-red {
+    background: #e83e3e;
+    color: #ffffff;
+    border: 1px solid rgba(232, 62, 62, 0.5);
+}
+.dark .match-rating-badge.rating-red {
+    background: #c92020;
+    border: 1px solid rgba(232, 62, 62, 0.4);
+}
+
+/* ============================================
+   MOTM Gold Glow Treatment
+   ============================================ */
+.motm-glow {
+    border: 2px solid rgba(212, 160, 23, 0.5) !important;
+    box-shadow:
+        0 0 20px rgba(212, 160, 23, 0.15),
+        0 0 40px rgba(212, 160, 23, 0.08),
+        inset 0 0 20px rgba(212, 160, 23, 0.05);
+}
+
+.dark .motm-glow {
+    border-color: rgba(212, 160, 23, 0.6) !important;
+    box-shadow:
+        0 0 25px rgba(212, 160, 23, 0.2),
+        0 0 50px rgba(212, 160, 23, 0.1),
+        inset 0 0 25px rgba(212, 160, 23, 0.08);
+}
+
+/* ============================================
+   Squad Reveal — Mobile Responsive
+   ============================================ */
+@media (max-width: 768px) {
+    .squad-reveal-vs .vs-line {
+        width: 40px;
+        height: 2px;
+        background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(212, 160, 23, 0.4) 50%,
+            transparent 100%
+        );
+    }
+
+    .squad-reveal-vs {
+        flex-direction: row;
+        gap: 0.75rem;
+        padding: 0.5rem 0;
+    }
+}
+
+/* Squad Reveal Bench — Mobile Scroll */
+@media (max-width: 640px) {
+    .reveal-bench-grid {
+        display: flex;
+        overflow-x: auto;
+        gap: 0.75rem;
+        padding-bottom: 0.5rem;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+    }
+    .reveal-bench-grid > * {
+        flex: 0 0 110px;
+        scroll-snap-align: start;
+    }
+    .reveal-bench-grid::-webkit-scrollbar {
+        height: 4px;
+    }
+    .reveal-bench-grid::-webkit-scrollbar-thumb {
+        background: rgba(212, 160, 23, 0.3);
+        border-radius: 2px;
+    }
+}
+
+/* ============================================
+   Match Animation — Goal Event Display
+   ============================================ */
+#anim-events {
+    min-height: 2rem;
+}
+
+.anim-event-item {
+    animation: fadeInUp 0.4s ease-out forwards;
+}
+
