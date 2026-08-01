@@ -189,6 +189,15 @@ def _resolve_champion_player_images(player_entry):
         fallback = current_app.config.get('DEFAULT_FRAME_IMAGE', 'teams/default_frame.png')
         player_entry['frame_image_url'] = url_for('static', filename='img/' + fallback)
 
+    # Attach overall rating from data_loader if available and not already set
+    if 'overall' not in player_entry or player_entry['overall'] is None:
+        country_players = current_app.data_loader.get_players_by_nationality(nationality)
+        from app.data_loader import sanitize_filename
+        target_sanitized = sanitize_filename(name)
+        matched = next((p for p in country_players if sanitize_filename(p.name) == target_sanitized), None)
+        if matched and matched.overall is not None:
+            player_entry['overall'] = matched.overall
+
 
 @main_bp.route('/dashboard')
 def dashboard():

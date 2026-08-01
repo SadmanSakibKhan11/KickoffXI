@@ -88,6 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalPrimary = document.getElementById('modal-player-primary');
     const modalSecondary = document.getElementById('modal-player-secondary');
     const modalSecondaryContainer = document.getElementById('modal-secondary-container');
+    const modalRatingContainer = document.getElementById('modal-rating-container');
+    const modalOverall = document.getElementById('modal-player-overall');
 
     /**
      * Open the player modal with data from the clicked card.
@@ -105,6 +107,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (modalName) modalName.textContent = player.name;
                 if (modalNationality) modalNationality.innerHTML = flagImgHtml(player.nationality, 20) + ' ' + player.nationality;
                 if (modalPrimary) modalPrimary.textContent = player.primary_position;
+
+                if (modalOverall && modalRatingContainer) {
+                    if (player.overall) {
+                        modalOverall.textContent = '⭐' + player.overall;
+                        modalRatingContainer.classList.remove('hidden');
+                    } else {
+                        modalRatingContainer.classList.add('hidden');
+                    }
+                }
 
                 if (modalSecondary && modalSecondaryContainer) {
                     if (player.secondary_position) {
@@ -204,8 +215,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="flex items-center gap-1.5 mt-1">
                             <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">${flagImgHtml(player.nationality)} ${player.nationality}</span>
                         </div>
-                        <div class="mt-1.5">
+                        <div class="mt-1.5 flex items-center justify-between gap-1">
                             <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-navy-100 text-navy-700 dark:bg-navy-800 dark:text-navy-200">${player.primary_position}</span>
+                            ${player.overall ? `<span class="ovr-badge font-extrabold">⭐${player.overall}</span>` : ''}
                         </div>
                     </div>
                 </div>

@@ -60,7 +60,7 @@ class Player:
         - frame:  teams/<country>/frame.png         (one per country, reusable)
         - player: teams/<country>/players/<name>.png (one per player, transparent BG)
     """
-    def __init__(self, id, name, primary_position, secondary_position, nationality, overall=70):
+    def __init__(self, id, name, primary_position, secondary_position, nationality, overall=None):
         self.id = id
         self.name = name
         self.primary_position = primary_position
@@ -220,8 +220,8 @@ class CSVDataLoader:
                                 logger.warning(f"[WARNING] Skipping malformed row {row_idx} in {filename}: missing key data.")
                                 continue
 
-                            # Parse overall rating (default 70 if missing/invalid)
-                            overall = 70
+                            # Parse overall rating (None if missing/invalid)
+                            overall = None
                             if has_overall_col:
                                 raw_overall = row.get('overall', '').strip()
                                 if raw_overall:
@@ -229,10 +229,8 @@ class CSVDataLoader:
                                         overall = int(raw_overall)
                                         overall = max(0, min(99, overall))
                                     except (ValueError, TypeError):
-                                        logger.warning(f"[WARNING] Non-numeric 'overall' value '{raw_overall}' for row {row_idx} in {filename} — defaulting to 70.")
-                                        overall = 70
-                                else:
-                                    logger.warning(f"[WARNING] Empty 'overall' value for row {row_idx} in {filename} — defaulting to 70.")
+                                        logger.warning(f"[WARNING] Non-numeric 'overall' value '{raw_overall}' for row {row_idx} in {filename} — setting to None.")
+                                        overall = None
                             
                             player = Player(
                                 id=next_id,

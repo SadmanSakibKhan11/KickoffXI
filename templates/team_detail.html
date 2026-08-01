@@ -55,10 +55,15 @@
 
                 <div class="p-2 sm:p-2.5">
                     <h3 class="font-bold text-navy-900 dark:text-white text-xs sm:text-sm truncate">{{ player.name }}</h3>
-                    <div class="mt-1.5 flex flex-wrap gap-1">
-                        <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-navy-100 text-navy-700 dark:bg-navy-800 dark:text-navy-200">{{ player.primary_position }}</span>
-                        {% if player.secondary_position %}
-                        <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400">{{ player.secondary_position }}</span>
+                    <div class="mt-1.5 flex items-center justify-between gap-1">
+                        <div class="flex flex-wrap gap-1 items-center">
+                            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-navy-100 text-navy-700 dark:bg-navy-800 dark:text-navy-200">{{ player.primary_position }}</span>
+                            {% if player.secondary_position %}
+                            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gold-50 text-gold-700 dark:bg-gold-500/10 dark:text-gold-400">{{ player.secondary_position }}</span>
+                            {% endif %}
+                        </div>
+                        {% if player.overall %}
+                        <span class="ovr-badge font-extrabold">⭐{{ player.overall }}</span>
                         {% endif %}
                     </div>
                 </div>

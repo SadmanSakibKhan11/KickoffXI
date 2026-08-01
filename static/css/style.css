@@ -489,3 +489,56 @@ select {
         border-radius: 2px;
     }
 }
+
+/* ============================================
+   EA FC 26 Overall Rating Badge (Gold Metallic Style)
+   ============================================ */
+.ovr-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #382805;
+    background: linear-gradient(135deg, #f2dc9d 0%, #d4a017 50%, #b38312 100%);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), inset 0 1px 0.5px rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(212, 160, 23, 0.6);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.dark .ovr-badge {
+    color: #fdf9ed;
+    background: linear-gradient(135deg, #b38312 0%, #d4a017 50%, #8a640e 100%);
+    border: 1px solid rgba(242, 220, 157, 0.4);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4), inset 0 1px 0.5px rgba(255, 255, 255, 0.3);
+}
+
+.ovr-badge-sm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.1rem;
+    padding: 0.05rem 0.35rem;
+    border-radius: 9999px;
+    font-size: 0.625rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #382805;
+    background: linear-gradient(135deg, #f2dc9d 0%, #d4a017 50%, #b38312 100%);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(212, 160, 23, 0.6);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.dark .ovr-badge-sm {
+    color: #fdf9ed;
+    background: linear-gradient(135deg, #b38312 0%, #d4a017 50%, #8a640e 100%);
+    border: 1px solid rgba(242, 220, 157, 0.4);
+}

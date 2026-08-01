@@ -39,6 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalRating = document.getElementById('champion-modal-rating');
     const modalAwards = document.getElementById('champion-modal-awards');
     const modalNumber = document.getElementById('champion-modal-number');
+    const modalRatingContainer = document.getElementById('champion-modal-rating-container');
+    const modalOverall = document.getElementById('champion-modal-overall');
 
 
     /**
@@ -84,6 +86,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // Nationality
         if (modalNationality) {
             modalNationality.innerHTML = flagImgHtml(player.nationality, 20) + ' ' + player.nationality;
+        }
+
+        // Overall Rating
+        if (modalOverall && modalRatingContainer) {
+            if (player.overall) {
+                modalOverall.textContent = '⭐' + player.overall;
+                modalRatingContainer.classList.remove('hidden');
+            } else {
+                modalRatingContainer.classList.add('hidden');
+            }
         }
 
         // Position

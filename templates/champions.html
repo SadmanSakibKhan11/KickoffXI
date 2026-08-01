@@ -169,10 +169,13 @@
                                     {% if player.is_captain %}<span class="text-gold-400 mr-0.5">©</span>{% endif %}
                                     {{ player.name }}
                                 </h3>
-                                <div class="mt-0.5">
+                                <div class="mt-0.5 flex items-center justify-between gap-1">
                                     <span
                                         class="inline-block px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-white/10 text-white/80">{{
                                         player.position }}</span>
+                                    {% if player.overall %}
+                                    <span class="ovr-badge-sm font-extrabold">⭐{{ player.overall }}</span>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -202,10 +205,13 @@
                                     {% if player.is_captain %}<span class="text-gold-400 mr-0.5">©</span>{% endif %}
                                     {{ player.name }}
                                 </h3>
-                                <div class="mt-0.5">
+                                <div class="mt-0.5 flex items-center justify-between gap-1">
                                     <span
                                         class="inline-block px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-white/10 text-white/80">{{
                                         player.position }}</span>
+                                    {% if player.overall %}
+                                    <span class="ovr-badge-sm font-extrabold">⭐{{ player.overall }}</span>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -235,10 +241,13 @@
                                     {% if player.is_captain %}<span class="text-gold-400 mr-0.5">©</span>{% endif %}
                                     {{ player.name }}
                                 </h3>
-                                <div class="mt-0.5">
+                                <div class="mt-0.5 flex items-center justify-between gap-1">
                                     <span
                                         class="inline-block px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-white/10 text-white/80">{{
                                         player.position }}</span>
+                                    {% if player.overall %}
+                                    <span class="ovr-badge-sm font-extrabold">⭐{{ player.overall }}</span>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -268,10 +277,13 @@
                                     {% if player.is_captain %}<span class="text-gold-400 mr-0.5">©</span>{% endif %}
                                     {{ player.name }}
                                 </h3>
-                                <div class="mt-0.5">
+                                <div class="mt-0.5 flex items-center justify-between gap-1">
                                     <span
                                         class="inline-block px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-white/10 text-white/80">{{
                                         player.position }}</span>
+                                    {% if player.overall %}
+                                    <span class="ovr-badge-sm font-extrabold">⭐{{ player.overall }}</span>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -298,10 +310,13 @@
                             </div>
                             <div class="p-1.5 sm:p-2 bg-navy-950/60 backdrop-blur-sm">
                                 <h3 class="font-bold text-white text-[11px] sm:text-xs truncate">{{ player.name }}</h3>
-                                <div class="mt-0.5">
+                                <div class="mt-0.5 flex items-center justify-between gap-1">
                                     <span
                                         class="inline-block px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-gold-500/20 text-gold-300">{{
                                         player.position }}</span>
+                                    {% if player.overall %}
+                                    <span class="ovr-badge-sm font-extrabold">⭐{{ player.overall }}</span>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -340,10 +355,13 @@
                 </div>
                 <div class="p-2 sm:p-2.5">
                     <h3 class="font-bold text-navy-900 dark:text-white text-xs sm:text-sm truncate">{{ player.name }}</h3>
-                    <div class="mt-1.5">
+                    <div class="mt-1.5 flex items-center justify-between gap-1">
                         <span
                             class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-navy-100 text-navy-700 dark:bg-navy-800 dark:text-navy-200">{{
                             player.position }}</span>
+                        {% if player.overall %}
+                        <span class="ovr-badge font-extrabold">⭐{{ player.overall }}</span>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -474,6 +492,12 @@
             <!-- Nationality -->
             <div class="flex items-center gap-2 mt-2">
                 <span id="champion-modal-nationality" class="text-gray-500 dark:text-gray-400 text-sm"></span>
+            </div>
+
+            <!-- Overall Rating Line -->
+            <div id="champion-modal-rating-container" class="hidden flex items-center gap-1.5 mt-2">
+                <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">Overall Rating:</span>
+                <span id="champion-modal-overall" class="ovr-badge font-extrabold text-xs"></span>
             </div>
 
             <!-- Position Badges -->
