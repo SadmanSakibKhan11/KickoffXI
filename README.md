@@ -10,7 +10,7 @@ A full-featured web application for browsing and searching every player in the *
 - **🔍 Player Database** — Searchable and filterable grid of all players
 - **🏳️ Teams Browser** — Browse all participating nations with player counts and flag emojis
 - **📋 Team Detail** — View the full squad roster for any team
-- **📊 Dashboard** — UI for Favorite XI, bench, recently viewed, and favorites (client-side)
+- **⚽ Match Simulator** — Build custom squads (11 starters + 7 subs) and simulate World Cup matches against AI
 - **🌙 Dark / Light Theme** — Toggleable theme with persistent preference via `localStorage`
 - **⚡ Live Search & Filters** — Client-side instant filtering by name, nationality, and position
 - **🎬 Scroll Animations** — Smooth entrance animations powered by `IntersectionObserver`
@@ -63,8 +63,7 @@ project/
 │   ├── index.html           # Home page
 │   ├── players.html         # Player database page
 │   ├── teams.html           # Teams overview page
-│   ├── team_detail.html     # Single team roster page
-│   └── dashboard.html       # User dashboard page
+│   └── team_detail.html     # Single team roster page
 │
 └── static/
     ├── css/

@@ -70,18 +70,6 @@ select {
 }
 
 /* ============================================
-   Formation Grid (Dashboard)
-   ============================================ */
-.formation-slot {
-    transition: all 0.3s ease;
-}
-
-.formation-slot:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 30px rgba(212, 160, 23, 0.15);
-}
-
-/* ============================================
    Hero Section Background Configuration
    ============================================ */
 :root {

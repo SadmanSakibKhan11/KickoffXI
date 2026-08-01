@@ -8,7 +8,6 @@ Page Routes:
     /players            — Player database
     /teams              — All teams
     /teams/<nationality>— Team detail page
-    /dashboard          — User dashboard (UI only)
     /match-simulator    — Match Simulator wizard
 
 API Routes:
@@ -197,15 +196,6 @@ def _resolve_champion_player_images(player_entry):
         matched = next((p for p in country_players if sanitize_filename(p.name) == target_sanitized), None)
         if matched and matched.overall is not None:
             player_entry['overall'] = matched.overall
-
-
-@main_bp.route('/dashboard')
-def dashboard():
-    """
-    User dashboard — UI only, no authentication.
-    Shows placeholder Favorite XI, bench, recently viewed, and favorites.
-    """
-    return render_template('dashboard.html')
 
 
 # ============================================================
