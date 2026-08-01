@@ -549,13 +549,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         <img src="${p.player_image_url}" alt="${p.name}" class="player-layer"
                              onerror="this.src=window.DEFAULT_PLAYER_IMAGE_URL" loading="lazy">
                     </div>
-                    <div class="p-1.5">
-                        <h4 class="font-bold text-navy-900 dark:text-white text-[10px] sm:text-xs truncate">${p.name}</h4>
-                        <div class="flex items-center justify-between mt-0.5">
-                            <span class="text-[9px] text-gray-500 dark:text-gray-400 truncate max-w-[70%]">${p.primary_position}${p.secondary_position ? ' / ' + p.secondary_position : ''}</span>
-                            <span class="text-[9px] font-bold text-gold-500">${p.overall}</span>
+                    <div class="p-2 sm:p-2.5">
+                        <h4 class="font-bold text-navy-900 dark:text-white text-xs sm:text-sm truncate">${p.name}</h4>
+                        <div class="flex items-center justify-between mt-1">
+                            <span class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate max-w-[70%]">${p.primary_position}${p.secondary_position ? ' / ' + p.secondary_position : ''}</span>
+                            <span class="text-[10px] sm:text-xs font-extrabold text-gold-500">${p.overall}</span>
                         </div>
-                        <div class="text-[8px] text-gray-400 dark:text-gray-500 mt-0.5 truncate">${flagImgHtml(p.nationality, 10)} ${p.nationality}</div>
+                        <div class="text-[9px] sm:text-[10px] text-gray-400 dark:text-gray-500 mt-1 truncate">${flagImgHtml(p.nationality, 12)} ${p.nationality}</div>
                     </div>
                 </div>
             </div>

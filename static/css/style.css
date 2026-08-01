@@ -164,11 +164,14 @@ select {
    Champions Page — Football Pitch
    ============================================ */
 .champion-pitch {
-    background: linear-gradient(180deg, #14532d 0%, #166534 30%, #15803d 50%, #166534 70%, #14532d 100%);
+    background-image: linear-gradient(rgba(10, 15, 26, 0.25), rgba(10, 15, 26, 0.25)), url('../img/pitch-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     position: relative;
     overflow: hidden;
     border-radius: 1.25rem;
-    border: 2px solid rgba(34, 197, 94, 0.2);
+    border: 2px solid rgba(34, 197, 94, 0.3);
 }
 
 /* Pitch field lines (decorative) */
@@ -349,11 +352,14 @@ select {
    Match Simulator — Football Pitch
    ============================================ */
 .match-sim-pitch {
-    background: linear-gradient(180deg, #14532d 0%, #166534 30%, #15803d 50%, #166534 70%, #14532d 100%);
+    background-image: linear-gradient(rgba(10, 15, 26, 0.25), rgba(10, 15, 26, 0.25)), url('../img/pitch-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     position: relative;
     overflow: hidden;
     border-radius: 1.25rem;
-    border: 2px solid rgba(34, 197, 94, 0.2);
+    border: 2px solid rgba(34, 197, 94, 0.3);
 }
 
 /* Pitch field lines (decorative) */
