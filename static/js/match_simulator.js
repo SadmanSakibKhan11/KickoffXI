@@ -61,6 +61,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let pickerTarget = null;   // { type: 'xi'|'bench', index: number, position: string, category: string }
     let storedSimData = null;  // Holds simulate API response for staged reveal
 
+    // Saved Squads state
+    let loadedSquadId = null;       // ID of currently loaded saved squad (null = new squad)
+    let loadedSquadName = '';       // Name of currently loaded saved squad
+    let pendingDeleteId = null;     // ID of squad pending delete confirmation
+    let pendingDeleteName = '';     // Name of squad pending delete confirmation
+    let saveMode = 'new';           // 'new' or 'update'
+
     // Set of player IDs already selected (Starting XI + bench)
     function getUsedPlayerIds() {
         const ids = new Set();
@@ -162,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const stepSquadReveal = document.getElementById('step-squad-reveal');
     const stepAnimation = document.getElementById('step-animation');
     const stepResult = document.getElementById('step-result');
+    const stepSavedSquads = document.getElementById('step-saved-squads');
 
     const difficultyCards = document.querySelectorAll('.difficulty-card');
     const formationBtns = document.getElementById('formation-buttons');
@@ -170,12 +178,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSimulate = document.getElementById('btn-simulate');
     const btnKickOff = document.getElementById('btn-kick-off');
     const btnPlayAgain = document.getElementById('btn-play-again');
+    const btnOpenSavedSquads = document.getElementById('btn-open-saved-squads');
+    const btnBackFromSaved = document.getElementById('btn-back-from-saved');
+    const btnBuildNewFromGallery = document.getElementById('btn-build-new-from-gallery');
+    const btnSaveSquad = document.getElementById('btn-save-squad');
 
     const formationLabel = document.getElementById('formation-label');
     const squadCounter = document.getElementById('squad-counter');
     const pitchSlots = document.getElementById('pitch-slots');
     const validationErrors = document.getElementById('validation-errors');
     const validationErrorList = document.getElementById('validation-error-list');
+    const savedSquadsGrid = document.getElementById('saved-squads-grid');
+    const savedSquadsCount = document.getElementById('saved-squads-count');
 
     // Picker modal
     const pickerModal = document.getElementById('picker-modal');
@@ -187,6 +201,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const pickerFilterPos = document.getElementById('picker-filter-position');
     const pickerGrid = document.getElementById('picker-grid');
     const pickerSlotLabel = document.getElementById('picker-slot-label');
+
+    // Save squad modal
+    const saveSquadModal = document.getElementById('save-squad-modal');
+    const saveSquadOverlay = document.getElementById('save-squad-overlay');
+    const saveSquadContent = document.getElementById('save-squad-content');
+    const saveSquadNameInput = document.getElementById('save-squad-name-input');
+    const saveSquadCancel = document.getElementById('save-squad-cancel');
+    const saveSquadConfirm = document.getElementById('save-squad-confirm');
+    const saveSquadError = document.getElementById('save-squad-error');
+    const saveSquadTitle = document.getElementById('save-squad-title');
+    const saveSquadSubtitle = document.getElementById('save-squad-subtitle');
+
+    // Delete squad modal
+    const deleteSquadModal = document.getElementById('delete-squad-modal');
+    const deleteSquadOverlay = document.getElementById('delete-squad-overlay');
+    const deleteSquadContent = document.getElementById('delete-squad-content');
+    const deleteSquadName = document.getElementById('delete-squad-name');
+    const deleteSquadCancel = document.getElementById('delete-squad-cancel');
+    const deleteSquadConfirm = document.getElementById('delete-squad-confirm');
 
     // Animation
     const animStage = document.getElementById('anim-stage');
@@ -443,11 +476,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateSquadCounter() {
         const xiCount = Object.keys(startingXI).length;
         const benchCount = Object.keys(bench).length;
+        const isComplete = xiCount === 11 && benchCount === 7;
         if (squadCounter) {
             squadCounter.textContent = `${xiCount}/11 Starting · ${benchCount}/7 Bench`;
         }
         if (btnSimulate) {
-            btnSimulate.disabled = !(xiCount === 11 && benchCount === 7);
+            btnSimulate.disabled = !isComplete;
+        }
+        if (btnSaveSquad) {
+            btnSaveSquad.disabled = !isComplete;
         }
     }
     updateSquadCounter();
@@ -641,6 +678,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 8. NAVIGATION BETWEEN STEPS
     // ============================================================
     btnStartBuilding?.addEventListener('click', () => {
+        loadedSquadId = null;
+        loadedSquadName = '';
         stepSetup.classList.add('hidden');
         stepSquad.classList.remove('hidden');
         if (formationLabel) formationLabel.textContent = selectedFormation;
@@ -653,6 +692,34 @@ document.addEventListener('DOMContentLoaded', () => {
     btnBackSetup?.addEventListener('click', () => {
         stepSquad.classList.add('hidden');
         stepSetup.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Saved Squads navigation
+    btnOpenSavedSquads?.addEventListener('click', () => {
+        stepSetup.classList.add('hidden');
+        stepSavedSquads?.classList.remove('hidden');
+        loadSavedSquadsGallery();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    btnBackFromSaved?.addEventListener('click', () => {
+        stepSavedSquads?.classList.add('hidden');
+        stepSetup.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    btnBuildNewFromGallery?.addEventListener('click', () => {
+        loadedSquadId = null;
+        loadedSquadName = '';
+        startingXI = {};
+        bench = {};
+        stepSavedSquads?.classList.add('hidden');
+        stepSquad.classList.remove('hidden');
+        if (formationLabel) formationLabel.textContent = selectedFormation;
+        renderPitch();
+        renderBench();
+        updateSquadCounter();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
@@ -1130,6 +1197,8 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedDifficulty = 'normal';
         selectedFormation = '4-3-3';
         storedSimData = null;
+        loadedSquadId = null;
+        loadedSquadName = '';
 
         // Reset UI
         stepResult.classList.add('hidden');
@@ -1137,6 +1206,7 @@ document.addEventListener('DOMContentLoaded', () => {
         stepSetup.classList.remove('hidden');
         btnSimulate.disabled = true;
         btnSimulate.textContent = 'Simulate Match ⚡';
+        if (btnSaveSquad) btnSaveSquad.disabled = true;
         hideValidationErrors();
         renderFormationButtons();
 
@@ -1157,6 +1227,410 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ============================================================
+    // 17. SAVED SQUADS — GALLERY
+    // ============================================================
+
+    async function loadSavedSquadsGallery() {
+        if (!savedSquadsGrid) return;
+        savedSquadsGrid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-400 text-sm">Loading saved squads...</div>';
+
+        try {
+            const res = await fetch('/api/saved-squads');
+            const data = await res.json();
+            const squads = data.squads || [];
+
+            if (savedSquadsCount) {
+                savedSquadsCount.textContent = squads.length > 0 ? `(${squads.length})` : '';
+            }
+
+            if (squads.length === 0) {
+                savedSquadsGrid.innerHTML = `
+                    <div class="col-span-full saved-squads-empty">
+                        <div class="text-3xl mb-3">📋</div>
+                        <h3 class="font-bold text-navy-900 dark:text-white text-lg mb-2">No Saved Squads Yet</h3>
+                        <p class="text-gray-400 dark:text-gray-500 text-sm mb-4">Build your first squad and save it for quick reuse.</p>
+                        <button onclick="document.getElementById('btn-build-new-from-gallery').click()"
+                            class="px-6 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-navy-950 font-bold text-sm uppercase tracking-wider transition-all cursor-pointer">
+                            Build Your First Squad
+                        </button>
+                    </div>`;
+                return;
+            }
+
+            savedSquadsGrid.innerHTML = squads.map(sq => {
+                const createdDate = sq.created_at ? new Date(sq.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+                const updatedDate = sq.updated_at ? new Date(sq.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+
+                return `
+                <div class="saved-squad-card p-4 sm:p-5">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-bold text-navy-900 dark:text-white text-sm sm:text-base truncate">${escapeHtml(sq.name)}</h3>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-gold-500/15 text-gold-600 dark:text-gold-400 border border-gold-500/25">${sq.formation}</span>
+                                <span class="text-[10px] text-gray-400 dark:text-gray-500">${sq.total_count} players</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 text-[10px] text-gray-400 dark:text-gray-500 mb-3">
+                        <span>XI: ${sq.starter_count}/11</span>
+                        <span>Bench: ${sq.bench_count}/7</span>
+                        ${updatedDate ? `<span class="ml-auto">${updatedDate}</span>` : ''}
+                    </div>
+                    <div class="card-actions">
+                        <button class="card-action-btn btn-use" onclick="window.MSim.useSquad(${sq.id})">Use Squad</button>
+                        <button class="card-action-btn btn-edit" onclick="window.MSim.editSquad(${sq.id})">Edit</button>
+                        <button class="card-action-btn btn-duplicate" onclick="window.MSim.duplicateSquad(${sq.id})">Duplicate</button>
+                        <button class="card-action-btn btn-delete" onclick="window.MSim.confirmDeleteSquad(${sq.id}, '${escapeHtml(sq.name).replace(/'/g, "\\'")}')">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+
+        } catch (err) {
+            console.error('Failed to load saved squads:', err);
+            savedSquadsGrid.innerHTML = '<div class="col-span-full text-center py-8 text-accent-500 text-sm">Failed to load saved squads. Please try again.</div>';
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+
+    // ============================================================
+    // 18. SAVED SQUADS — USE / EDIT / LOAD
+    // ============================================================
+
+    /**
+     * Load a saved squad into the Squad Builder.
+     * mode: 'use' = fresh use (loadedSquadId = null), 'edit' = edit mode (loadedSquadId = id)
+     */
+    async function loadSquadIntoBuilder(squadId, mode) {
+        try {
+            const res = await fetch(`/api/saved-squads/${squadId}`);
+            if (!res.ok) {
+                const errData = await res.json();
+                alert(errData.error || 'Failed to load squad.');
+                return;
+            }
+            const data = await res.json();
+
+            // Set formation
+            if (data.formation && formations[data.formation]) {
+                selectedFormation = data.formation;
+                renderFormationButtons();
+            }
+
+            // Clear current selections
+            startingXI = {};
+            bench = {};
+
+            // Track unavailable players
+            let hasUnavailable = false;
+
+            // Populate starters
+            for (const p of data.starters) {
+                const slotIdx = parseInt(p.slot);
+                if (p.available) {
+                    // Find player in allPlayers for consistent object reference
+                    const localPlayer = allPlayers.find(lp => lp.id === p.id);
+                    if (localPlayer) {
+                        startingXI[slotIdx] = localPlayer;
+                    } else {
+                        startingXI[slotIdx] = p;
+                    }
+                } else {
+                    hasUnavailable = true;
+                    // Leave slot empty — user must replace
+                }
+            }
+
+            // Populate bench
+            // Map bench category to bench indices: GK=0, DEF=1,2, MID=3,4, ATT=5,6
+            const benchCategoryIndices = { 'GK': [0], 'DEF': [1, 2], 'MID': [3, 4], 'ATT': [5, 6] };
+            const usedBenchIndices = new Set();
+
+            for (const p of data.bench) {
+                if (p.available) {
+                    const cat = p.slot; // bench category
+                    const possibleIndices = benchCategoryIndices[cat] || [];
+                    const freeIdx = possibleIndices.find(i => !usedBenchIndices.has(i));
+                    if (freeIdx !== undefined) {
+                        const localPlayer = allPlayers.find(lp => lp.id === p.id);
+                        bench[freeIdx] = localPlayer || p;
+                        usedBenchIndices.add(freeIdx);
+                    }
+                } else {
+                    hasUnavailable = true;
+                }
+            }
+
+            // Set loaded squad tracking
+            if (mode === 'edit') {
+                loadedSquadId = squadId;
+                loadedSquadName = data.name;
+            } else {
+                loadedSquadId = null;
+                loadedSquadName = '';
+            }
+
+            // Navigate to squad builder
+            stepSavedSquads?.classList.add('hidden');
+            stepSetup.classList.add('hidden');
+            stepSquad.classList.remove('hidden');
+            if (formationLabel) formationLabel.textContent = selectedFormation;
+            renderPitch();
+            renderBench();
+            updateSquadCounter();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (hasUnavailable) {
+                showValidationErrors(['Some players are no longer available. Please replace them before continuing.']);
+            }
+
+        } catch (err) {
+            console.error('Failed to load squad:', err);
+            alert('Network error loading squad. Please try again.');
+        }
+    }
+
+
+    // ============================================================
+    // 19. SAVED SQUADS — SAVE / UPDATE
+    // ============================================================
+
+    btnSaveSquad?.addEventListener('click', () => {
+        if (loadedSquadId) {
+            // Editing an existing squad — offer update or save-as-new
+            saveMode = 'update';
+            if (saveSquadTitle) saveSquadTitle.textContent = 'Update Squad';
+            if (saveSquadSubtitle) saveSquadSubtitle.textContent = `Update "${loadedSquadName}" or save as a new squad.`;
+            if (saveSquadNameInput) saveSquadNameInput.value = loadedSquadName;
+            if (saveSquadConfirm) saveSquadConfirm.textContent = 'Update';
+        } else {
+            // New squad
+            saveMode = 'new';
+            if (saveSquadTitle) saveSquadTitle.textContent = 'Save Squad';
+            if (saveSquadSubtitle) saveSquadSubtitle.textContent = 'Give your squad a name to save it for later.';
+            if (saveSquadNameInput) saveSquadNameInput.value = '';
+            if (saveSquadConfirm) saveSquadConfirm.textContent = 'Save';
+        }
+        if (saveSquadError) { saveSquadError.classList.add('hidden'); saveSquadError.textContent = ''; }
+        showSaveModal();
+    });
+
+    saveSquadCancel?.addEventListener('click', closeSaveModal);
+    saveSquadOverlay?.addEventListener('click', closeSaveModal);
+
+    saveSquadConfirm?.addEventListener('click', async () => {
+        const name = (saveSquadNameInput?.value || '').trim();
+        if (!name) {
+            if (saveSquadError) {
+                saveSquadError.textContent = 'Please enter a squad name.';
+                saveSquadError.classList.remove('hidden');
+            }
+            return;
+        }
+
+        // Build payloads
+        const xiPayload = Object.entries(startingXI).map(([idx, p]) => ({
+            player_id: p.id,
+            slot_index: parseInt(idx),
+        }));
+        const benchPayload = Object.values(bench).map(p => ({
+            player_id: p.id,
+        }));
+
+        const body = {
+            name: name,
+            formation: selectedFormation,
+            starting_xi: xiPayload,
+            bench: benchPayload,
+        };
+
+        try {
+            let res;
+            if (saveMode === 'update' && loadedSquadId) {
+                res = await fetch(`/api/saved-squads/${loadedSquadId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+            } else {
+                res = await fetch('/api/saved-squads', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+            }
+
+            const result = await res.json();
+
+            if (!res.ok) {
+                const errorMsg = result.errors ? result.errors.join(' ') : (result.error || 'Save failed.');
+                if (saveSquadError) {
+                    saveSquadError.textContent = errorMsg;
+                    saveSquadError.classList.remove('hidden');
+                }
+                return;
+            }
+
+            // Success — update tracking
+            if (saveMode === 'new' && result.id) {
+                loadedSquadId = result.id;
+            }
+            loadedSquadName = name;
+
+            closeSaveModal();
+
+            // Show brief success feedback
+            showTemporaryToast(saveMode === 'update' ? 'Squad updated!' : 'Squad saved!');
+
+        } catch (err) {
+            console.error('Save squad error:', err);
+            if (saveSquadError) {
+                saveSquadError.textContent = 'Network error. Please try again.';
+                saveSquadError.classList.remove('hidden');
+            }
+        }
+    });
+
+    // Enter key in name input triggers save
+    saveSquadNameInput?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            saveSquadConfirm?.click();
+        }
+    });
+
+    function showSaveModal() {
+        if (!saveSquadModal) return;
+        saveSquadModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        requestAnimationFrame(() => {
+            saveSquadOverlay?.classList.add('opacity-100');
+            saveSquadContent?.classList.add('opacity-100', 'scale-100');
+            saveSquadContent?.classList.remove('opacity-0', 'scale-95');
+            saveSquadNameInput?.focus();
+        });
+    }
+
+    function closeSaveModal() {
+        if (!saveSquadModal) return;
+        saveSquadOverlay?.classList.remove('opacity-100');
+        saveSquadContent?.classList.remove('opacity-100', 'scale-100');
+        saveSquadContent?.classList.add('opacity-0', 'scale-95');
+        document.body.style.overflow = '';
+        setTimeout(() => saveSquadModal.classList.add('hidden'), 250);
+    }
+
+
+    // ============================================================
+    // 20. SAVED SQUADS — DELETE CONFIRMATION
+    // ============================================================
+
+    function confirmDeleteSquad(squadId, squadName) {
+        pendingDeleteId = squadId;
+        pendingDeleteName = squadName;
+        if (deleteSquadName) deleteSquadName.textContent = squadName;
+        showDeleteModal();
+    }
+
+    deleteSquadCancel?.addEventListener('click', closeDeleteModal);
+    deleteSquadOverlay?.addEventListener('click', closeDeleteModal);
+
+    deleteSquadConfirm?.addEventListener('click', async () => {
+        if (!pendingDeleteId) return;
+        try {
+            const res = await fetch(`/api/saved-squads/${pendingDeleteId}`, { method: 'DELETE' });
+            if (res.ok) {
+                closeDeleteModal();
+                loadSavedSquadsGallery();
+                showTemporaryToast('Squad deleted.');
+            } else {
+                const errData = await res.json();
+                alert(errData.error || 'Failed to delete squad.');
+            }
+        } catch (err) {
+            console.error('Delete squad error:', err);
+            alert('Network error. Please try again.');
+        }
+    });
+
+    function showDeleteModal() {
+        if (!deleteSquadModal) return;
+        deleteSquadModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        requestAnimationFrame(() => {
+            deleteSquadOverlay?.classList.add('opacity-100');
+            deleteSquadContent?.classList.add('opacity-100', 'scale-100');
+            deleteSquadContent?.classList.remove('opacity-0', 'scale-95');
+        });
+    }
+
+    function closeDeleteModal() {
+        if (!deleteSquadModal) return;
+        deleteSquadOverlay?.classList.remove('opacity-100');
+        deleteSquadContent?.classList.remove('opacity-100', 'scale-100');
+        deleteSquadContent?.classList.add('opacity-0', 'scale-95');
+        document.body.style.overflow = '';
+        setTimeout(() => {
+            deleteSquadModal.classList.add('hidden');
+            pendingDeleteId = null;
+            pendingDeleteName = '';
+        }, 250);
+    }
+
+
+    // ============================================================
+    // 21. SAVED SQUADS — DUPLICATE
+    // ============================================================
+
+    async function duplicateSquad(squadId) {
+        try {
+            const res = await fetch(`/api/saved-squads/${squadId}/duplicate`, { method: 'POST' });
+            if (res.ok) {
+                loadSavedSquadsGallery();
+                showTemporaryToast('Squad duplicated!');
+            } else {
+                const errData = await res.json();
+                alert(errData.error || 'Failed to duplicate squad.');
+            }
+        } catch (err) {
+            console.error('Duplicate squad error:', err);
+            alert('Network error. Please try again.');
+        }
+    }
+
+
+    // ============================================================
+    // 22. TOAST NOTIFICATION
+    // ============================================================
+
+    function showTemporaryToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] px-5 py-2.5 rounded-xl bg-navy-800 dark:bg-navy-700 text-white text-sm font-semibold shadow-xl transition-all duration-300 opacity-0 translate-y-4';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        requestAnimationFrame(() => {
+            toast.classList.remove('opacity-0', 'translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+        });
+
+        setTimeout(() => {
+            toast.classList.remove('opacity-100', 'translate-y-0');
+            toast.classList.add('opacity-0', 'translate-y-4');
+            setTimeout(() => toast.remove(), 300);
+        }, 2000);
+    }
+
+
+    // ============================================================
     // GLOBAL API (for onclick handlers in template)
     // ============================================================
     window.MSim = {
@@ -1169,6 +1643,10 @@ document.addEventListener('DOMContentLoaded', () => {
         selectPlayer,
         removeXIPlayer,
         removeBenchPlayer,
+        useSquad: (id) => loadSquadIntoBuilder(id, 'use'),
+        editSquad: (id) => loadSquadIntoBuilder(id, 'edit'),
+        confirmDeleteSquad,
+        duplicateSquad,
     };
 
 });

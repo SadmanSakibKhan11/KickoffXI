@@ -46,6 +46,13 @@ def create_app(config_name=None):
     data_dir = os.path.abspath(os.path.join(app.root_path, '../data'))
     app.data_loader = CSVDataLoader(data_dir)
 
+    # Initialize Saved Squads SQLite database
+    from app.saved_squads_db import init_db
+    instance_dir = os.path.abspath(os.path.join(app.root_path, '../instance'))
+    db_path = os.path.join(instance_dir, 'saved_squads.db')
+    app.config['SAVED_SQUADS_DB'] = db_path
+    init_db(db_path)
+
     # Register context processor to inject default fallback image URL
     @app.context_processor
     def inject_defaults():

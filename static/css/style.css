@@ -711,3 +711,155 @@ select {
     animation: fadeInUp 0.4s ease-out forwards;
 }
 
+/* ============================================
+   Saved Squads — Gallery Cards
+   ============================================ */
+.saved-squad-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+    border: 1px solid rgba(209, 213, 219, 0.5);
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.dark .saved-squad-card {
+    border-color: rgba(20, 30, 51, 0.5);
+    background: #0a0f1a;
+}
+
+.saved-squad-card:hover {
+    border-color: rgba(212, 160, 23, 0.4);
+    box-shadow: 0 8px 30px rgba(212, 160, 23, 0.08);
+    transform: translateY(-2px);
+}
+
+.saved-squad-card .card-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.saved-squad-card .card-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.saved-squad-card .card-action-btn.btn-use {
+    background: #d4a017;
+    color: #050810;
+}
+
+.saved-squad-card .card-action-btn.btn-use:hover {
+    background: #b38312;
+    box-shadow: 0 4px 12px rgba(212, 160, 23, 0.2);
+}
+
+.saved-squad-card .card-action-btn.btn-edit {
+    background: rgba(30, 45, 77, 0.08);
+    color: #1e2d4d;
+    border-color: rgba(30, 45, 77, 0.15);
+}
+
+.dark .saved-squad-card .card-action-btn.btn-edit {
+    background: rgba(255, 255, 255, 0.06);
+    color: #b3bfdf;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.saved-squad-card .card-action-btn.btn-edit:hover {
+    background: rgba(30, 45, 77, 0.15);
+}
+
+.dark .saved-squad-card .card-action-btn.btn-edit:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.saved-squad-card .card-action-btn.btn-duplicate {
+    background: rgba(30, 45, 77, 0.08);
+    color: #1e2d4d;
+    border-color: rgba(30, 45, 77, 0.15);
+}
+
+.dark .saved-squad-card .card-action-btn.btn-duplicate {
+    background: rgba(255, 255, 255, 0.06);
+    color: #b3bfdf;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.saved-squad-card .card-action-btn.btn-duplicate:hover {
+    background: rgba(30, 45, 77, 0.15);
+}
+
+.dark .saved-squad-card .card-action-btn.btn-duplicate:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.saved-squad-card .card-action-btn.btn-delete {
+    background: transparent;
+    color: #9ca3af;
+}
+
+.saved-squad-card .card-action-btn.btn-delete:hover {
+    color: #e83e3e;
+    background: rgba(232, 62, 62, 0.08);
+}
+
+/* ============================================
+   Saved Squads — Empty State
+   ============================================ */
+.saved-squads-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    border: 2px dashed rgba(209, 213, 219, 0.4);
+    border-radius: 1rem;
+    background: rgba(249, 250, 251, 0.5);
+}
+
+.dark .saved-squads-empty {
+    border-color: rgba(20, 30, 51, 0.6);
+    background: rgba(10, 15, 26, 0.3);
+}
+
+/* ============================================
+   Saved Squads — Unavailable Player Slot
+   ============================================ */
+.unavailable-player-slot {
+    border: 2px dashed rgba(232, 62, 62, 0.4) !important;
+    background: rgba(232, 62, 62, 0.05) !important;
+    position: relative;
+}
+
+.unavailable-player-slot::after {
+    content: '⚠ Unavailable';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #e83e3e;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+/* ============================================
+   Saved Squads — Gallery Mobile Scroll
+   ============================================ */
+@media (max-width: 640px) {
+    #saved-squads-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
