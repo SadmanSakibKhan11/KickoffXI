@@ -42,7 +42,7 @@ class Config:
     MAIL_PORT = int(os.getenv('MAIL_PORT') or 587)
     MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', 'True').strip().lower() in ('true', '1', 'yes')
     MAIL_USERNAME = os.getenv('MAIL_USERNAME', '').strip()
-    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD', '').strip()
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD', '').replace(' ', '').strip()
 
 
 class DevelopmentConfig(Config):

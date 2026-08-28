@@ -37,6 +37,12 @@ def create_app(config_name=None):
     # Load configuration
     app.config.from_object(config[config_name])
 
+    # Apply ProxyFix when in production behind reverse proxies (e.g. Render, Nginx)
+    # Ensures X-Forwarded-Proto is respected so SESSION_COOKIE_SECURE works seamlessly over HTTPS
+    if config_name == 'production' or os.environ.get('FLASK_CONFIG') == 'production':
+        from werkzeug.middleware.proxy_fix import ProxyFix
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
     # Ensure default placeholder folder structure and branding folders exist
     ensure_placeholder_image(app)
     ensure_branding_dir(app)

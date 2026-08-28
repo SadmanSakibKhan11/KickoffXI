@@ -445,8 +445,8 @@ def _send_otp_email(to_email, otp_code, username):
     mail_server = current_app.config.get('MAIL_SERVER', 'smtp.gmail.com')
     mail_port = current_app.config.get('MAIL_PORT', 587)
     mail_use_tls = current_app.config.get('MAIL_USE_TLS', True)
-    mail_username = current_app.config.get('MAIL_USERNAME', '')
-    mail_password = current_app.config.get('MAIL_PASSWORD', '')
+    mail_username = current_app.config.get('MAIL_USERNAME', '').strip()
+    mail_password = current_app.config.get('MAIL_PASSWORD', '').replace(' ', '').strip()
 
     if not mail_username or not mail_password:
         raise ValueError("SMTP credentials not configured. Set MAIL_USERNAME and MAIL_PASSWORD in .env")
