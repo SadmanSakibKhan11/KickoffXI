@@ -160,7 +160,6 @@ def signin():
 
     identifier = (request.form.get('identifier') or '').strip()
     password = request.form.get('password', '')
-    remember = request.form.get('remember') == 'on'
 
     errors = {}
 
@@ -185,11 +184,6 @@ def signin():
     session.clear()
     session['user_id'] = user['id']
     session['username'] = user['username']
-
-    if remember:
-        session.permanent = True
-    else:
-        session.permanent = False
 
     # Redirect to original page if 'next' was specified
     next_url = request.args.get('next') or request.form.get('next')

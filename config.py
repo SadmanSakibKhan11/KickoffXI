@@ -10,7 +10,6 @@ Usage:
 """
 
 import os
-from datetime import timedelta
 from dotenv import load_dotenv
 
 # Base directory of the project (used for resolving relative paths)
@@ -37,9 +36,6 @@ class Config:
     # Session security
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
-    PERMANENT_SESSION_LIFETIME = timedelta(
-        seconds=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 2592000))
-    )
 
     # Gmail SMTP configuration (for password reset OTP emails)
     MAIL_SERVER = os.getenv('MAIL_SERVER', 'smtp.gmail.com')

@@ -151,22 +151,6 @@
 }
 
 /* ============================================
-   Auth Checkbox
-   ============================================ */
-.auth-checkbox {
-    width: 1rem;
-    height: 1rem;
-    border: 1.5px solid #d1d5db;
-    border-radius: 0.25rem;
-    accent-color: #d4a017;
-    cursor: pointer;
-}
-
-.dark .auth-checkbox {
-    border-color: #1e2d4d;
-}
-
-/* ============================================
    Auth Button — Gold Gradient
    ============================================ */
 .auth-btn {
