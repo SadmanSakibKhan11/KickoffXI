@@ -18,7 +18,7 @@ API Routes:
     /api/match-simulator/simulate       — Run match simulation (JSON)
 """
 
-from flask import Blueprint, render_template, request, jsonify, current_app
+from flask import Blueprint, render_template, request, jsonify, current_app, session
 import random
 import logging
 
@@ -420,18 +420,24 @@ def api_simulate_match():
 
 
 # ============================================================
-# SAVED SQUADS — API ROUTES
+# SAVED SQUADS — API ROUTES (authenticated, user-scoped)
 # ============================================================
 
 @main_bp.route('/api/saved-squads', methods=['GET'])
 def api_list_saved_squads():
     """
-    API: List all saved squads with metadata and player counts.
+    API: List all saved squads for the logged-in user.
     Returns JSON list sorted by last updated (newest first).
     """
+    from app.auth_routes import login_required as _lr
     from app.saved_squads_db import list_squads, get_db_path
+
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Login required.', 'login_required': True}), 401
+
     db_path = get_db_path(current_app)
-    squads = list_squads(db_path)
+    squads = list_squads(db_path, user_id)
     return jsonify({'squads': squads})
 
 
@@ -439,13 +445,16 @@ def api_list_saved_squads():
 def api_get_saved_squad(squad_id):
     """
     API: Retrieve one saved squad with fully resolved player data.
-    Each player includes an 'available' flag — False if the player
-    no longer exists in the current CSV data.
+    Scoped to the logged-in user — returns 404 if not owned.
     """
     from app.saved_squads_db import get_squad_raw, get_db_path
-    db_path = get_db_path(current_app)
 
-    squad_data = get_squad_raw(db_path, squad_id)
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Login required.', 'login_required': True}), 401
+
+    db_path = get_db_path(current_app)
+    squad_data = get_squad_raw(db_path, squad_id, user_id)
     if not squad_data:
         return jsonify({'error': f'Saved squad with ID {squad_id} not found.'}), 404
 
@@ -498,12 +507,16 @@ def api_get_saved_squad(squad_id):
 @main_bp.route('/api/saved-squads', methods=['POST'])
 def api_create_saved_squad():
     """
-    API: Create a new saved squad.
+    API: Create a new saved squad for the logged-in user.
     Validates via the existing validate_squad() before inserting.
     """
     from app.match_validation import validate_squad, get_position_category
     from app.formations import FORMATIONS
     from app.saved_squads_db import create_squad, get_db_path
+
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Login required.', 'login_required': True}), 401
 
     try:
         data = request.get_json(force=True)
@@ -554,7 +567,7 @@ def api_create_saved_squad():
         })
 
     db_path = get_db_path(current_app)
-    squad_id = create_squad(db_path, name, formation_name, starters, bench_players)
+    squad_id = create_squad(db_path, name, formation_name, starters, bench_players, user_id)
 
     return jsonify({'id': squad_id, 'message': f"Squad '{name}' saved successfully."}), 201
 
@@ -563,16 +576,20 @@ def api_create_saved_squad():
 def api_update_saved_squad(squad_id):
     """
     API: Update an existing saved squad (rename and/or replace players).
-    Validates via the existing validate_squad() before updating.
+    Scoped to the logged-in user — returns 404 if not owned.
     """
     from app.match_validation import validate_squad, get_position_category
     from app.formations import FORMATIONS
     from app.saved_squads_db import update_squad, get_squad_raw, get_db_path
 
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Login required.', 'login_required': True}), 401
+
     db_path = get_db_path(current_app)
 
-    # Verify squad exists
-    existing = get_squad_raw(db_path, squad_id)
+    # Verify squad exists and belongs to user
+    existing = get_squad_raw(db_path, squad_id, user_id)
     if not existing:
         return jsonify({'error': f'Saved squad with ID {squad_id} not found.'}), 404
 
@@ -624,7 +641,7 @@ def api_update_saved_squad(squad_id):
             'slot': category,
         })
 
-    update_squad(db_path, squad_id, name, formation_name, starters, bench_players)
+    update_squad(db_path, squad_id, name, formation_name, starters, bench_players, user_id)
 
     return jsonify({'id': squad_id, 'message': f"Squad '{name}' updated successfully."})
 
@@ -633,11 +650,16 @@ def api_update_saved_squad(squad_id):
 def api_delete_saved_squad(squad_id):
     """
     API: Delete a saved squad (cascades to player associations).
+    Scoped to the logged-in user.
     """
     from app.saved_squads_db import delete_squad, get_db_path
 
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Login required.', 'login_required': True}), 401
+
     db_path = get_db_path(current_app)
-    deleted = delete_squad(db_path, squad_id)
+    deleted = delete_squad(db_path, squad_id, user_id)
 
     if not deleted:
         return jsonify({'error': f'Saved squad with ID {squad_id} not found.'}), 404
@@ -649,8 +671,13 @@ def api_delete_saved_squad(squad_id):
 def api_duplicate_saved_squad(squad_id):
     """
     API: Duplicate an existing saved squad under a new name.
+    Scoped to the logged-in user.
     """
     from app.saved_squads_db import duplicate_squad, get_db_path
+
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Login required.', 'login_required': True}), 401
 
     db_path = get_db_path(current_app)
 
@@ -663,11 +690,10 @@ def api_duplicate_saved_squad(squad_id):
     except Exception:
         pass
 
-    new_id = duplicate_squad(db_path, squad_id, new_name)
+    new_id = duplicate_squad(db_path, squad_id, user_id, new_name)
 
     if new_id is None:
         return jsonify({'error': f'Saved squad with ID {squad_id} not found.'}), 404
 
     return jsonify({'id': new_id, 'message': 'Squad duplicated successfully.'}), 201
-
 

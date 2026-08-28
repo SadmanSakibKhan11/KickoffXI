@@ -278,4 +278,33 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollObserver.observe(el);
     });
 
+
+    // ============================================================
+    // 7. USER MENU DROPDOWN (Navbar)
+    // ============================================================
+
+    const userMenuToggle = document.getElementById('user-menu-toggle');
+    const userMenuDropdown = document.getElementById('user-menu-dropdown');
+    const userMenuWrapper = document.getElementById('user-menu-wrapper');
+
+    if (userMenuToggle && userMenuDropdown) {
+        userMenuToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userMenuDropdown.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (userMenuWrapper && !userMenuWrapper.contains(e.target)) {
+                userMenuDropdown.classList.add('hidden');
+            }
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                userMenuDropdown.classList.add('hidden');
+            }
+        });
+    }
+
 });

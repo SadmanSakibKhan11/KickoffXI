@@ -5,10 +5,11 @@ Lightweight persistence for user-created squads using raw sqlite3.
 No ORM — matches the project's minimal-dependency style.
 
 Tables:
-    saved_squads         — Squad metadata (name, formation, timestamps)
+    saved_squads         — Squad metadata (name, formation, timestamps, user ownership)
     saved_squad_players  — Player references per squad (starter/bench, slot)
 
 All queries use parameterized placeholders for SQL injection safety.
+All operations are scoped to a user_id for ownership enforcement.
 """
 
 import sqlite3
@@ -42,6 +43,8 @@ def init_db(db_path):
     """
     Create the saved_squads and saved_squad_players tables if they
     don't already exist. Safe to call on every app startup.
+
+    Also runs a safe migration to add user_id column if missing.
     """
     # Ensure the directory exists
     db_dir = os.path.dirname(db_path)
@@ -68,6 +71,14 @@ def init_db(db_path):
             );
         ''')
         conn.commit()
+
+        # Migration: add user_id column if it doesn't exist yet
+        columns = [row['name'] for row in conn.execute('PRAGMA table_info(saved_squads)').fetchall()]
+        if 'user_id' not in columns:
+            conn.execute('ALTER TABLE saved_squads ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE')
+            conn.commit()
+            logger.info("[OK] Migrated saved_squads: added user_id column")
+
         logger.info(f"[OK] Saved squads database initialized at {db_path}")
     except Exception as e:
         logger.error(f"[ERROR] Failed to initialize saved squads database: {e}")
@@ -82,12 +93,12 @@ def _now_iso():
 
 
 # ════════════════════════════════════════════════════════════════
-# LIST ALL SQUADS
+# LIST ALL SQUADS (scoped to user)
 # ════════════════════════════════════════════════════════════════
 
-def list_squads(db_path):
+def list_squads(db_path, user_id):
     """
-    Return all saved squads with metadata and player counts.
+    Return all saved squads for a specific user with metadata and player counts.
 
     Returns:
         List of dicts: [{id, name, formation, starter_count, bench_count,
@@ -103,9 +114,10 @@ def list_squads(db_path):
                 COUNT(sp.id) AS total_count
             FROM saved_squads s
             LEFT JOIN saved_squad_players sp ON sp.squad_id = s.id
+            WHERE s.user_id = ?
             GROUP BY s.id
             ORDER BY s.updated_at DESC
-        ''').fetchall()
+        ''', (user_id,)).fetchall()
 
         return [{
             'id': r['id'],
@@ -125,9 +137,12 @@ def list_squads(db_path):
 # GET SINGLE SQUAD (raw, without player resolution)
 # ════════════════════════════════════════════════════════════════
 
-def get_squad_raw(db_path, squad_id):
+def get_squad_raw(db_path, squad_id, user_id):
     """
     Retrieve a single saved squad and its player references.
+    Enforces ownership via user_id — returns None if squad
+    doesn't belong to the requesting user.
+
     Does NOT resolve player data — that's done in the route layer
     where the data_loader is available.
 
@@ -137,7 +152,7 @@ def get_squad_raw(db_path, squad_id):
     conn = get_db(db_path)
     try:
         squad = conn.execute(
-            'SELECT * FROM saved_squads WHERE id = ?', (squad_id,)
+            'SELECT * FROM saved_squads WHERE id = ? AND user_id = ?', (squad_id, user_id)
         ).fetchone()
 
         if not squad:
@@ -168,7 +183,7 @@ def get_squad_raw(db_path, squad_id):
 # CREATE SQUAD
 # ════════════════════════════════════════════════════════════════
 
-def create_squad(db_path, name, formation, starters, bench_players):
+def create_squad(db_path, name, formation, starters, bench_players, user_id):
     """
     Insert a new saved squad with its player references.
 
@@ -179,6 +194,7 @@ def create_squad(db_path, name, formation, starters, bench_players):
                        where slot is the slot_index as string.
         bench_players: List of dicts: [{player_id, slot}, ...]
                        where slot is the bench category (GK/DEF/MID/ATT).
+        user_id:       ID of the owning user.
 
     Returns:
         The new squad's ID.
@@ -187,8 +203,8 @@ def create_squad(db_path, name, formation, starters, bench_players):
     conn = get_db(db_path)
     try:
         cursor = conn.execute(
-            'INSERT INTO saved_squads (name, formation, created_at, updated_at) VALUES (?, ?, ?, ?)',
-            (name, formation, now, now)
+            'INSERT INTO saved_squads (name, formation, created_at, updated_at, user_id) VALUES (?, ?, ?, ?, ?)',
+            (name, formation, now, now, user_id)
         )
         squad_id = cursor.lastrowid
 
@@ -207,7 +223,7 @@ def create_squad(db_path, name, formation, starters, bench_players):
             )
 
         conn.commit()
-        logger.info(f"[OK] Created saved squad '{name}' (ID: {squad_id})")
+        logger.info(f"[OK] Created saved squad '{name}' (ID: {squad_id}) for user {user_id}")
         return squad_id
     except Exception:
         conn.rollback()
@@ -220,19 +236,20 @@ def create_squad(db_path, name, formation, starters, bench_players):
 # UPDATE SQUAD
 # ════════════════════════════════════════════════════════════════
 
-def update_squad(db_path, squad_id, name, formation, starters, bench_players):
+def update_squad(db_path, squad_id, name, formation, starters, bench_players, user_id):
     """
     Replace an existing saved squad's metadata and player references.
+    Enforces ownership via user_id.
     Uses delete-then-insert within a transaction for clean replacement.
 
     Returns:
-        True if the squad existed and was updated, False if not found.
+        True if the squad existed and was updated, False if not found/not owned.
     """
     conn = get_db(db_path)
     try:
-        # Verify squad exists
+        # Verify squad exists and belongs to user
         existing = conn.execute(
-            'SELECT id FROM saved_squads WHERE id = ?', (squad_id,)
+            'SELECT id FROM saved_squads WHERE id = ? AND user_id = ?', (squad_id, user_id)
         ).fetchone()
         if not existing:
             return False
@@ -278,18 +295,19 @@ def update_squad(db_path, squad_id, name, formation, starters, bench_players):
 # DELETE SQUAD
 # ════════════════════════════════════════════════════════════════
 
-def delete_squad(db_path, squad_id):
+def delete_squad(db_path, squad_id, user_id):
     """
     Delete a saved squad and its player associations (via CASCADE).
+    Enforces ownership via user_id.
 
     Returns:
-        True if the squad existed and was deleted, False if not found.
+        True if the squad existed and was deleted, False if not found/not owned.
     """
     conn = get_db(db_path)
     try:
-        # Verify existence
+        # Verify existence and ownership
         existing = conn.execute(
-            'SELECT id FROM saved_squads WHERE id = ?', (squad_id,)
+            'SELECT id FROM saved_squads WHERE id = ? AND user_id = ?', (squad_id, user_id)
         ).fetchone()
         if not existing:
             return False
@@ -309,18 +327,20 @@ def delete_squad(db_path, squad_id):
 # DUPLICATE SQUAD
 # ════════════════════════════════════════════════════════════════
 
-def duplicate_squad(db_path, squad_id, new_name=None):
+def duplicate_squad(db_path, squad_id, user_id, new_name=None):
     """
     Create a copy of an existing saved squad under a new name.
+    Enforces ownership of the source squad via user_id.
 
     Args:
         squad_id: ID of the squad to duplicate.
+        user_id:  ID of the owning user.
         new_name: Name for the copy. If None, appends ' (Copy)' to original.
 
     Returns:
         The new squad's ID, or None if the source squad was not found.
     """
-    source = get_squad_raw(db_path, squad_id)
+    source = get_squad_raw(db_path, squad_id, user_id)
     if not source:
         return None
 
@@ -329,4 +349,4 @@ def duplicate_squad(db_path, squad_id, new_name=None):
     starters = [p for p in source['players'] if p['role'] == 'starter']
     bench_players = [p for p in source['players'] if p['role'] == 'bench']
 
-    return create_squad(db_path, copy_name, source['formation'], starters, bench_players)
+    return create_squad(db_path, copy_name, source['formation'], starters, bench_players, user_id)

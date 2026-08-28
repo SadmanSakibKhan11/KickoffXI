@@ -46,17 +46,19 @@ def create_app(config_name=None):
     data_dir = os.path.abspath(os.path.join(app.root_path, '../data'))
     app.data_loader = CSVDataLoader(data_dir)
 
-    # Initialize Saved Squads SQLite database
+    # Initialize SQLite database (shared by Saved Squads and Auth)
     from app.saved_squads_db import init_db
+    from app.auth_db import init_auth_db
     instance_dir = os.path.abspath(os.path.join(app.root_path, '../instance'))
     db_path = os.path.join(instance_dir, 'saved_squads.db')
     app.config['SAVED_SQUADS_DB'] = db_path
     init_db(db_path)
+    init_auth_db(db_path)
 
     # Register context processor to inject default fallback image URL
     @app.context_processor
     def inject_defaults():
-        from flask import url_for
+        from flask import url_for, session
         from app.routes import COUNTRY_FLAGS
         default_img = app.config.get('DEFAULT_PLAYER_IMAGE', 'players/default.png')
         default_url = url_for('static', filename='img/' + default_img)
@@ -81,12 +83,21 @@ def create_app(config_name=None):
                 favicon_url = url_for('static', filename=f'img/branding/{fav_name}')
                 break
 
+        # Current user info for templates
+        current_user = None
+        if 'user_id' in session:
+            current_user = {
+                'id': session['user_id'],
+                'username': session.get('username', ''),
+            }
+
         return {
             'default_player_image_url': default_url,
             'default_frame_image_url': default_frame_url,
             'flags': COUNTRY_FLAGS,
             'logo_url': logo_url,
             'favicon_url': favicon_url,
+            'current_user': current_user,
         }
 
     # Register Jinja2 global function for flag images
@@ -112,6 +123,9 @@ def create_app(config_name=None):
     # Register blueprints / routes
     from app.routes import main_bp
     app.register_blueprint(main_bp)
+
+    from app.auth_routes import auth_bp
+    app.register_blueprint(auth_bp)
 
     return app
 

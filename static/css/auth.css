@@ -1,0 +1,378 @@
+/*
+ * KickoffXI — Auth Pages Styles
+ * ==============================
+ * Styles for authentication forms: Sign In, Sign Up, Forgot Password, Profile.
+ * Follows the existing navy/gold/accent color palette and Inter typography.
+ */
+
+/* ============================================
+   Auth Page — Full Screen Layout
+   ============================================ */
+.auth-page {
+    position: relative;
+    min-height: calc(100vh - 3.5rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 2rem 0;
+}
+
+@media (min-width: 640px) {
+    .auth-page {
+        min-height: calc(100vh - 3.75rem);
+    }
+}
+
+/* ============================================
+   Auth Card — Glass Morphism Container
+   ============================================ */
+.auth-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(209, 213, 219, 0.3);
+    border-radius: 1.5rem;
+    padding: 2rem 1.75rem;
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.dark .auth-card {
+    background: rgba(10, 15, 26, 0.92);
+    border-color: rgba(30, 45, 77, 0.4);
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(30, 45, 77, 0.3);
+}
+
+/* ============================================
+   Auth Input Fields
+   ============================================ */
+.auth-field {
+    margin-bottom: 1rem;
+}
+
+.auth-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #1e2d4d;
+    margin-bottom: 0.35rem;
+    letter-spacing: 0.02em;
+}
+
+.dark .auth-label {
+    color: #b3bfdf;
+}
+
+.auth-input {
+    width: 100%;
+    padding: 0.65rem 0.875rem;
+    border: 1.5px solid #d1d5db;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-family: 'Inter', sans-serif;
+    color: #141e33;
+    background: white;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.auth-input::placeholder {
+    color: #9ca3af;
+}
+
+.auth-input:focus {
+    border-color: #d4a017;
+    box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.1);
+}
+
+.dark .auth-input {
+    background: #141e33;
+    border-color: #1e2d4d;
+    color: #e5e7eb;
+}
+
+.dark .auth-input::placeholder {
+    color: #4b5563;
+}
+
+.dark .auth-input:focus {
+    border-color: #d4a017;
+    box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.15);
+}
+
+.auth-input-error {
+    border-color: #e83e3e !important;
+}
+
+.auth-input-error:focus {
+    box-shadow: 0 0 0 3px rgba(232, 62, 62, 0.1) !important;
+}
+
+/* ============================================
+   Password Field with Eye Toggle
+   ============================================ */
+.auth-password-wrapper {
+    position: relative;
+}
+
+.auth-input-password {
+    padding-right: 2.75rem;
+}
+
+.auth-password-toggle {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0.25rem;
+    border: none;
+    background: none;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-password-toggle:hover {
+    color: #667fbf;
+}
+
+.dark .auth-password-toggle {
+    color: #4b5563;
+}
+
+.dark .auth-password-toggle:hover {
+    color: #8d9fcf;
+}
+
+/* ============================================
+   Auth Checkbox
+   ============================================ */
+.auth-checkbox {
+    width: 1rem;
+    height: 1rem;
+    border: 1.5px solid #d1d5db;
+    border-radius: 0.25rem;
+    accent-color: #d4a017;
+    cursor: pointer;
+}
+
+.dark .auth-checkbox {
+    border-color: #1e2d4d;
+}
+
+/* ============================================
+   Auth Button — Gold Gradient
+   ============================================ */
+.auth-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.7rem 1.5rem;
+    border: none;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #050810;
+    background: linear-gradient(135deg, #ebc96c 0%, #d4a017 50%, #b38312 100%);
+    box-shadow: 0 4px 15px rgba(212, 160, 23, 0.25);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.auth-btn:hover {
+    background: linear-gradient(135deg, #d4a017 0%, #b38312 50%, #8a640e 100%);
+    box-shadow: 0 6px 20px rgba(212, 160, 23, 0.35);
+    transform: translateY(-1px);
+}
+
+.auth-btn:active {
+    transform: translateY(0);
+}
+
+.auth-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ============================================
+   Error Messages
+   ============================================ */
+.auth-field-error {
+    font-size: 0.75rem;
+    color: #e83e3e;
+    margin-top: 0.3rem;
+    font-weight: 500;
+}
+
+.dark .auth-field-error {
+    color: #f47070;
+}
+
+.auth-error-banner {
+    padding: 0.65rem 0.875rem;
+    border-radius: 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #e83e3e;
+    background: rgba(232, 62, 62, 0.08);
+    border: 1px solid rgba(232, 62, 62, 0.2);
+}
+
+.dark .auth-error-banner {
+    color: #f47070;
+    background: rgba(232, 62, 62, 0.1);
+    border-color: rgba(232, 62, 62, 0.15);
+}
+
+/* ============================================
+   Success Messages
+   ============================================ */
+.auth-success-message {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #16a34a;
+    text-align: center;
+}
+
+.dark .auth-success-message {
+    color: #22c55e;
+}
+
+/* ============================================
+   OTP Input Group (6 digit boxes)
+   ============================================ */
+.otp-input-group {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.otp-digit {
+    width: 2.75rem;
+    height: 3.25rem;
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 800;
+    font-family: 'Inter', monospace;
+    border: 1.5px solid #d1d5db;
+    border-radius: 0.75rem;
+    background: white;
+    color: #141e33;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.otp-digit:focus {
+    border-color: #d4a017;
+    box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.1);
+}
+
+.dark .otp-digit {
+    background: #141e33;
+    border-color: #1e2d4d;
+    color: #e5e7eb;
+}
+
+.dark .otp-digit:focus {
+    border-color: #d4a017;
+    box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.15);
+}
+
+@media (max-width: 380px) {
+    .otp-digit {
+        width: 2.25rem;
+        height: 2.75rem;
+        font-size: 1rem;
+    }
+    .otp-input-group {
+        gap: 0.35rem;
+    }
+}
+
+/* ============================================
+   Profile Page Components
+   ============================================ */
+.profile-card {
+    background: white;
+    border: 1px solid rgba(209, 213, 219, 0.5);
+    border-radius: 1rem;
+    padding: 1.5rem;
+}
+
+.dark .profile-card {
+    background: #0a0f1a;
+    border-color: rgba(20, 30, 51, 0.5);
+}
+
+.profile-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    background: #f9fafb;
+    border-radius: 0.75rem;
+}
+
+.dark .profile-detail-item {
+    background: #141e33;
+}
+
+.profile-detail-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dark .profile-detail-label {
+    color: #4b5563;
+}
+
+.profile-detail-value {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #141e33;
+}
+
+.dark .profile-detail-value {
+    color: #e5e7eb;
+}
+
+/* ============================================
+   Loading State — Button Spinner
+   ============================================ */
+.btn-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* ============================================
+   User Menu Dropdown Animation
+   ============================================ */
+#user-menu-dropdown {
+    animation: dropdownFadeIn 0.15s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

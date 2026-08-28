@@ -1236,6 +1236,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const res = await fetch('/api/saved-squads');
+
+            // If not logged in, show sign-in prompt instead of error
+            if (res.status === 401) {
+                if (savedSquadsCount) savedSquadsCount.textContent = '';
+                savedSquadsGrid.innerHTML = `
+                    <div class="col-span-full saved-squads-empty">
+                        <div class="text-3xl mb-3">🔒</div>
+                        <h3 class="font-bold text-navy-900 dark:text-white text-lg mb-2">Sign In to Save Squads</h3>
+                        <p class="text-gray-400 dark:text-gray-500 text-sm mb-4">Create an account or sign in to save and manage your squads.</p>
+                        <a href="/signin"
+                            class="inline-block px-6 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-navy-950 font-bold text-sm uppercase tracking-wider transition-all">
+                            Sign In
+                        </a>
+                        <a href="/signup"
+                            class="inline-block ml-2 px-6 py-2.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-white font-bold text-sm uppercase tracking-wider transition-all">
+                            Create Account
+                        </a>
+                    </div>`;
+                return;
+            }
+
             const data = await res.json();
             const squads = data.squads || [];
 
@@ -1472,6 +1493,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!res.ok) {
                 const errorMsg = result.errors ? result.errors.join(' ') : (result.error || 'Save failed.');
+                // Handle login-required response
+                if (result.login_required) {
+                    closeSaveModal();
+                    showTemporaryToast('Please sign in to save squads.');
+                    setTimeout(() => { window.location.href = '/signin'; }, 1500);
+                    return;
+                }
                 if (saveSquadError) {
                     saveSquadError.textContent = errorMsg;
                     saveSquadError.classList.remove('hidden');
