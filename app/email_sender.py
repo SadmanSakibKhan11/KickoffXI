@@ -12,12 +12,20 @@ Features:
 import html
 import logging
 import smtplib
+import socket
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 from flask import current_app
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_SMTP_TIMEOUT = 10.0
+
+
+class EmailDeliveryError(Exception):
+    """Raised when password reset email delivery fails."""
+    pass
 
 
 def mask_email(email: str) -> str:
@@ -42,6 +50,7 @@ def send_password_reset_email(to_email: str, reset_url: str, username: str) -> N
     mail_use_tls = current_app.config.get('MAIL_USE_TLS', True)
     mail_username = current_app.config.get('MAIL_USERNAME', '').strip()
     mail_password = current_app.config.get('MAIL_PASSWORD', '').replace(' ', '').strip()
+    mail_timeout = float(current_app.config.get('MAIL_TIMEOUT_SECONDS', DEFAULT_SMTP_TIMEOUT))
 
     if not mail_username or not mail_password:
         raise ValueError("SMTP credentials not configured. Set MAIL_USERNAME and MAIL_PASSWORD.")
@@ -104,11 +113,24 @@ def send_password_reset_email(to_email: str, reset_url: str, username: str) -> N
     msg.attach(MIMEText(text_body, 'plain'))
     msg.attach(MIMEText(html_body, 'html'))
 
-    with smtplib.SMTP(mail_server, mail_port) as server:
-        if mail_use_tls:
-            server.starttls()
-        server.login(mail_username, mail_password)
-        server.sendmail(mail_username, to_email, msg.as_string())
+    try:
+        with smtplib.SMTP(mail_server, mail_port, timeout=mail_timeout) as server:
+            if mail_use_tls:
+                server.starttls()
+                if getattr(server, 'sock', None):
+                    server.sock.settimeout(mail_timeout)
+            server.login(mail_username, mail_password)
+            server.sendmail(mail_username, to_email, msg.as_string())
 
-    logger.info(f"[OK] Password reset email sent to {mask_email(to_email)}")
+        logger.info(f"[OK] Password reset email sent to {mask_email(to_email)}")
+
+    except (TimeoutError, socket.timeout) as e:
+        logger.error(f"[ERROR] SMTP connection timed out while sending reset email to {mask_email(to_email)}")
+        raise EmailDeliveryError("Email delivery timed out. Please try again.") from e
+    except smtplib.SMTPAuthenticationError as e:
+        logger.error(f"[ERROR] SMTP authentication failed for configured mail account")
+        raise EmailDeliveryError("Email service authentication failure.") from e
+    except (smtplib.SMTPException, OSError) as e:
+        logger.error(f"[ERROR] SMTP delivery failed for {mask_email(to_email)}: {e.__class__.__name__}")
+        raise EmailDeliveryError("Failed to deliver password reset email.") from e
 

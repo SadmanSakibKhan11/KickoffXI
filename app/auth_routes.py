@@ -35,7 +35,7 @@ from app.session_auth import (
     login_required, is_safe_url, get_current_user_from_request,
     create_firebase_session_cookie, set_auth_cookie, clear_auth_cookie
 )
-from app.email_sender import send_password_reset_email
+from app.email_sender import send_password_reset_email, EmailDeliveryError
 
 logger = logging.getLogger(__name__)
 
@@ -413,8 +413,16 @@ def forgot_password():
         # Send email via Gmail SMTP
         send_password_reset_email(email, reset_url, username)
 
+    except EmailDeliveryError as e:
+        logger.error(f"[ERROR] Password reset email delivery failed: {e}")
+        return render_template(
+            'forgot_password.html',
+            errors={'general': 'Unable to send password reset email at this time. Please try again later.'},
+            email=email
+        ), 500
     except Exception as e:
-        logger.error(f"[ERROR] Failed to generate/send reset link: {e}")
+        logger.error(f"[ERROR] Failed to generate/send reset link: {e.__class__.__name__}")
+        return render_template('forgot_password.html', submitted=True, success_message=generic_confirmation)
 
     return render_template('forgot_password.html', submitted=True, success_message=generic_confirmation)
 

@@ -5,6 +5,7 @@ Tests signup, login, session cookies, remember me, logout, forgot-password,
 reset-password, and security headers.
 """
 
+import pytest
 from unittest.mock import patch, MagicMock
 from flask import session
 from firebase_admin import auth, exceptions as fb_exceptions
@@ -310,6 +311,64 @@ def test_reset_email_escaping(mock_smtp, app):
 
         assert '<script>' not in raw_msg
         assert '&lt;script&gt;' in raw_msg
+
+
+@patch('smtplib.SMTP')
+def test_send_password_reset_email_timeout_applied(mock_smtp, app):
+    """Verify that SMTP client enforces the 10-second timeout."""
+    with app.app_context():
+        app.config['MAIL_USERNAME'] = 'mailer@example.com'
+        app.config['MAIL_PASSWORD'] = 'password'
+        app.config['MAIL_TIMEOUT_SECONDS'] = 10.0
+
+        mock_server = MagicMock()
+        mock_smtp.return_value.__enter__.return_value = mock_server
+
+        send_password_reset_email("user@example.com", "http://localhost/reset", "TestUser")
+
+        # Verify SMTP was instantiated with 10.0s timeout
+        mock_smtp.assert_called_once_with('smtp.gmail.com', 587, timeout=10.0)
+        # Verify TLS socket timeout was also set
+        mock_server.sock.settimeout.assert_called_with(10.0)
+
+
+@patch('smtplib.SMTP')
+def test_send_password_reset_email_timeout_raises_delivery_error(mock_smtp, app):
+    """Verify that an SMTP socket timeout raises a clean EmailDeliveryError."""
+    import socket
+    from app.email_sender import EmailDeliveryError
+
+    with app.app_context():
+        app.config['MAIL_USERNAME'] = 'mailer@example.com'
+        app.config['MAIL_PASSWORD'] = 'password'
+
+        mock_smtp.side_effect = socket.timeout("Connection timed out")
+
+        with pytest.raises(EmailDeliveryError) as exc_info:
+            send_password_reset_email("user@example.com", "http://localhost/reset", "TestUser")
+
+        assert "timed out" in str(exc_info.value).lower()
+
+
+@patch('app.auth_routes.send_password_reset_email')
+def test_forgot_password_email_delivery_failure_shows_safe_error(mock_send_email, client, in_memory_user_store, mock_firebase_auth):
+    """Verify that email delivery failure returns a safe 500 error page without leaking sensitive data."""
+    from app.email_sender import EmailDeliveryError
+
+    in_memory_user_store.create_user_profile("user-reset-uid", "resetuser", "reset@example.com")
+    mock_user_rec = MagicMock()
+    mock_user_rec.uid = "user-reset-uid"
+    mock_user_rec.display_name = "resetuser"
+    mock_firebase_auth.get_user_by_email.return_value = mock_user_rec
+    mock_firebase_auth.generate_password_reset_link.return_value = "https://kickoffxi.firebaseapp.com/__/auth/action?mode=resetPassword&oobCode=oob12345"
+
+    mock_send_email.side_effect = EmailDeliveryError("Email delivery timed out. Please try again.")
+
+    res = client.post('/forgot-password', data={'email': 'reset@example.com'})
+    assert res.status_code == 500
+    assert b"Unable to send password reset email at this time" in res.data
+    # Ensure raw tokens or internal details are not exposed
+    assert b"oob12345" not in res.data
 
 
 def test_session_verification_cache_check_revoked_enforcement(app, mock_firebase_auth):

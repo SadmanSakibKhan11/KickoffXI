@@ -63,6 +63,7 @@ class Config:
     MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', 'True').strip().lower() in ('true', '1', 'yes')
     MAIL_USERNAME = os.getenv('MAIL_USERNAME', '').strip()
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD', '').replace(' ', '').strip()
+    MAIL_TIMEOUT_SECONDS = float(os.getenv('MAIL_TIMEOUT_SECONDS', '10.0'))
 
 
 class DevelopmentConfig(Config):
