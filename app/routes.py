@@ -438,8 +438,12 @@ def api_list_saved_squads():
     uid = user['uid']
 
     squad_store = get_squad_store()
-    squads = squad_store.list_squads(uid)
-    return jsonify({'squads': squads})
+    try:
+        squads = squad_store.list_squads(uid)
+        return jsonify({'squads': squads})
+    except Exception as e:
+        logger.error(f"[ERROR] Failed to list saved squads: {e}")
+        return jsonify({'error': 'Failed to retrieve saved squads.'}), 500
 
 
 @main_bp.route('/api/saved-squads/<string:squad_id>', methods=['GET'])
@@ -459,7 +463,12 @@ def api_get_saved_squad(squad_id):
     uid = user['uid']
 
     squad_store = get_squad_store()
-    squad_data = squad_store.get_squad_raw(uid, squad_id)
+    try:
+        squad_data = squad_store.get_squad_raw(uid, squad_id)
+    except Exception as e:
+        logger.error(f"[ERROR] Failed to get saved squad: {e}")
+        return jsonify({'error': 'Failed to retrieve saved squad.'}), 500
+
     if not squad_data:
         return jsonify({'error': f'Saved squad with ID {squad_id} not found.'}), 404
 
@@ -580,6 +589,9 @@ def api_create_saved_squad():
         squad_id = squad_store.create_squad(uid, name, formation_name, players)
     except SquadLimitReachedError as e:
         return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        logger.error(f"[ERROR] Failed to create saved squad: {e}")
+        return jsonify({'error': 'Failed to save squad.'}), 500
 
     return jsonify({'id': squad_id, 'message': f"Squad '{name}' saved successfully."}), 201
 
@@ -654,7 +666,12 @@ def api_update_saved_squad(squad_id):
             'slot': category,
         })
 
-    updated = squad_store.update_squad(uid, squad_id, name, formation_name, players)
+    try:
+        updated = squad_store.update_squad(uid, squad_id, name, formation_name, players)
+    except Exception as e:
+        logger.error(f"[ERROR] Failed to update saved squad: {e}")
+        return jsonify({'error': 'Failed to update squad.'}), 500
+
     if not updated:
         return jsonify({'error': f'Saved squad with ID {squad_id} not found.'}), 404
 
@@ -677,7 +694,12 @@ def api_delete_saved_squad(squad_id):
     uid = user['uid']
 
     squad_store = get_squad_store()
-    deleted = squad_store.delete_squad(uid, squad_id)
+    try:
+        deleted = squad_store.delete_squad(uid, squad_id)
+    except Exception as e:
+        logger.error(f"[ERROR] Failed to delete saved squad: {e}")
+        return jsonify({'error': 'Failed to delete squad.'}), 500
+
     if not deleted:
         return jsonify({'error': f'Saved squad with ID {squad_id} not found.'}), 404
 
@@ -714,6 +736,9 @@ def api_duplicate_saved_squad(squad_id):
         new_id = squad_store.duplicate_squad(uid, squad_id, new_name)
     except SquadLimitReachedError as e:
         return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        logger.error(f"[ERROR] Failed to duplicate saved squad: {e}")
+        return jsonify({'error': 'Failed to duplicate squad.'}), 500
 
     if new_id is None:
         return jsonify({'error': f'Saved squad with ID {squad_id} not found.'}), 404

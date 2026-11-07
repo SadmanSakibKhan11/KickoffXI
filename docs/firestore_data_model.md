@@ -27,6 +27,39 @@ graph TD
     UN -.->|references uid| U
 ```
 
+### Logical Data Model (ER-Style Schema)
+
+```mermaid
+erDiagram
+    USER ||--o{ SAVED_SQUAD : "contains subcollection (1:N)"
+    USER ||--|| USERNAME_RESERVATION : "1:1 unique reservation"
+
+    USER {
+        string uid PK "Firebase Auth UID (matches Document ID)"
+        string username "Display username in original casing"
+        string username_normalized "Lowercase trimmed username"
+        string email "Lowercase registered email address"
+        string created_at "ISO-8601 UTC timestamp of creation"
+        string updated_at "ISO-8601 UTC timestamp of update"
+        string last_reset_request_at "ISO-8601 UTC timestamp of reset (nullable)"
+    }
+
+    USERNAME_RESERVATION {
+        string username_normalized PK "Normalized username (Document ID)"
+        string uid FK "References users/{uid}"
+        string created_at "ISO-8601 UTC timestamp of reservation"
+    }
+
+    SAVED_SQUAD {
+        string squadId PK "12-char hex subcollection document ID"
+        string name "User-defined squad title (e.g. Dream Team)"
+        string formation "Tactical formation e.g. 4-3-3"
+        string created_at "ISO-8601 UTC timestamp of squad creation"
+        string updated_at "ISO-8601 UTC timestamp of last modification"
+        list_of_maps players "18 embedded player dicts (11 starter + 7 bench)"
+    }
+```
+
 ---
 
 ## 2. Document Collections & Schemas

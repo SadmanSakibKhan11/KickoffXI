@@ -139,13 +139,16 @@ class FirestoreSquadStore(BaseSquadStore):
             return None
 
         doc_ref = self._squads_col(uid).document(squad_id)
-        snap = doc_ref.get()
-        if not snap.exists:
-            return None
+        try:
+            snap = doc_ref.get()
+            if not snap.exists:
+                return None
 
-        data = snap.to_dict() or {}
-        data['id'] = doc_ref.id
-        return data
+            data = snap.to_dict() or {}
+            data['id'] = doc_ref.id
+            return data
+        except Exception:
+            return None
 
     def create_squad(
         self,
@@ -209,12 +212,15 @@ class FirestoreSquadStore(BaseSquadStore):
             return False
 
         doc_ref = self._squads_col(uid).document(squad_id)
-        snap = doc_ref.get()
-        if not snap.exists:
-            return False
+        try:
+            snap = doc_ref.get()
+            if not snap.exists:
+                return False
 
-        doc_ref.delete()
-        return True
+            doc_ref.delete()
+            return True
+        except Exception:
+            return False
 
     def duplicate_squad(
         self,

@@ -293,3 +293,96 @@ def test_duplicate_squad_at_limit_returns_400(client, in_memory_squad_store, moc
         res = client.post(f'/api/saved-squads/{squad_id}/duplicate', json={'name': 'Duplicate Squad'})
         assert res.status_code == 400
         assert "Squad limit of 50 reached" in res.get_json()['error']
+
+
+def test_create_and_update_saved_squad_rejects_invalid_squad(client, app, in_memory_squad_store, mock_firebase_auth):
+    """
+    Verify that POST /api/saved-squads and PUT /api/saved-squads/<id>
+    reject malformed or invalid squad payloads before persisting.
+    """
+    mock_firebase_auth.verify_session_cookie.return_value = {
+        'uid': 'user_A',
+        'sub': 'user_A',
+        'name': 'Alice',
+        'email': 'alice@example.com'
+    }
+    client.set_cookie('kxi_session', 'mock_cookie_user_A')
+
+    starters, bench = _build_valid_433_payload(app.data_loader)
+
+    # 1. Missing squad name
+    res_no_name = client.post('/api/saved-squads', json={
+        'name': '   ',
+        'formation': '4-3-3',
+        'starting_xi': starters,
+        'bench': bench
+    })
+    assert res_no_name.status_code == 400
+    assert 'Squad name is required' in res_no_name.get_json()['error']
+
+    # 2. Invalid squad (only 10 starters)
+    res_bad_squad = client.post('/api/saved-squads', json={
+        'name': 'Incomplete XI',
+        'formation': '4-3-3',
+        'starting_xi': starters[:10],
+        'bench': bench
+    })
+    assert res_bad_squad.status_code == 400
+    assert 'Squad validation failed' in res_bad_squad.get_json()['error']
+
+    # Create a valid squad to test PUT rejection
+    create_res = client.post('/api/saved-squads', json={
+        'name': 'Valid Squad',
+        'formation': '4-3-3',
+        'starting_xi': starters,
+        'bench': bench
+    })
+    assert create_res.status_code == 201
+    squad_id = create_res.get_json()['id']
+
+    # 3. PUT with invalid formation
+    res_bad_put = client.put(f'/api/saved-squads/{squad_id}', json={
+        'name': 'Updated Squad',
+        'formation': 'invalid-formation',
+        'starting_xi': starters,
+        'bench': bench
+    })
+    assert res_bad_put.status_code == 400
+    assert 'Squad validation failed' in res_bad_put.get_json()['error']
+
+
+def test_delete_squad_nonexistent_returns_404(client, mock_firebase_auth):
+    """Deleting a non-existent or already-deleted squad returns 404."""
+    mock_firebase_auth.verify_session_cookie.return_value = {
+        'uid': 'user_A',
+        'sub': 'user_A',
+        'name': 'Alice',
+        'email': 'alice@example.com'
+    }
+    client.set_cookie('kxi_session', 'mock_cookie_user_A')
+
+    res = client.delete('/api/saved-squads/nonexistent_123')
+    assert res.status_code == 404
+
+
+def test_saved_squad_api_handles_store_exceptions(client, app, in_memory_squad_store, mock_firebase_auth):
+    """Verify that unexpected store exceptions return clean HTTP 500 JSON responses."""
+    mock_firebase_auth.verify_session_cookie.return_value = {
+        'uid': 'user_A',
+        'sub': 'user_A',
+        'name': 'Alice',
+        'email': 'alice@example.com'
+    }
+    client.set_cookie('kxi_session', 'mock_cookie_user_A')
+
+    starters, bench = _build_valid_433_payload(app.data_loader)
+
+    with patch.object(in_memory_squad_store, 'create_squad', side_effect=RuntimeError("Firestore connection dropped")):
+        res = client.post('/api/saved-squads', json={
+            'name': 'Error Squad',
+            'formation': '4-3-3',
+            'starting_xi': starters,
+            'bench': bench
+        })
+        assert res.status_code == 500
+        assert res.get_json()['error'] == 'Failed to save squad.'

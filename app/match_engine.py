@@ -322,19 +322,19 @@ def generate_ai_squad(formation_slots, user_player_ids, all_players, difficulty)
 
 
 # ════════════════════════════════════════════════════════════════
-# TEAM STRENGTH
+# TEAM STRENGTH & MATCH PROBABILITIES
 # ════════════════════════════════════════════════════════════════
 
-def calculate_team_strength(starting_xi_players, difficulty):
+def calculate_team_strength(starting_xi_players, difficulty='normal'):
     """
-    Calculate team strength as the average overall + a random modifier.
+    Calculate team strength as the average overall rating + difficulty modifier.
 
     Args:
-        starting_xi_players: List of 11 Player objects.
+        starting_xi_players: List of 11 Player objects or dicts.
         difficulty:          'easy', 'normal', or 'hard'.
 
     Returns:
-        Float — team strength value.
+        Float — team strength value bounded between 1.0 and 99.0.
     """
     if not starting_xi_players:
         return 50.0
@@ -342,10 +342,91 @@ def calculate_team_strength(starting_xi_players, difficulty):
     config = DIFFICULTY_CONFIG.get(difficulty, DIFFICULTY_CONFIG['normal'])
     mod_range = config['modifier_range']
 
-    avg = sum(p.overall for p in starting_xi_players) / len(starting_xi_players)
+    total_overall = 0.0
+    count = 0
+    for p in starting_xi_players:
+        if hasattr(p, 'overall'):
+            total_overall += float(p.overall)
+            count += 1
+        elif isinstance(p, dict) and 'overall' in p:
+            total_overall += float(p['overall'])
+            count += 1
+
+    if count == 0:
+        return 50.0
+
+    avg = total_overall / count
     modifier = random.randint(-mod_range, mod_range)
 
-    return round(avg + modifier, 1)
+    return round(max(1.0, min(99.0, avg + modifier)), 1)
+
+
+def calculate_match_probabilities(user_strength, ai_strength):
+    """
+    Calculate mathematically sound Win / Draw / Loss probabilities based on the
+    strength differential between two squads.
+
+    Model:
+        Let delta = user_strength - ai_strength.
+        - Draw probability peaks at parity (~26.0%) and decays smoothly with a
+          Gaussian curve as the strength gap widens:
+          P_draw = max(0.05, 0.26 * exp(-delta^2 / (2 * tau^2)))
+        - The remaining probability (1 - P_draw) is partitioned using a logistic
+          Bradley-Terry model: P_win_share = 1 / (1 + exp(-k * delta))
+        - All probabilities are strictly between 0% and 100%.
+        - The three probabilities total exactly 100.0% via residual allocation.
+
+    Args:
+        user_strength: Numeric team rating (typically 50.0–99.0).
+        ai_strength:   Numeric team rating (typically 50.0–99.0).
+
+    Returns:
+        Dict with keys:
+            'user_win': float (e.g. 52.3)
+            'draw':     float (e.g. 24.1)
+            'ai_win':   float (e.g. 23.6)
+            'win':      float (alias for user_win)
+            'loss':     float (alias for ai_win)
+    """
+    try:
+        u_str = float(user_strength) if user_strength is not None else 50.0
+        a_str = float(ai_strength) if ai_strength is not None else 50.0
+    except (ValueError, TypeError):
+        u_str, a_str = 50.0, 50.0
+
+    delta = u_str - a_str
+
+    # Draw probability with Gaussian decay from parity (tau = 12.0)
+    tau = 12.0
+    p_draw_raw = 0.26 * math.exp(-(delta ** 2) / (2.0 * (tau ** 2)))
+    p_draw = max(0.05, min(0.35, p_draw_raw))
+
+    # Partition remaining decisive probability logistically (k = 0.15)
+    p_decisive = 1.0 - p_draw
+    k = 0.15
+    k_delta = max(-20.0, min(20.0, k * delta))
+    win_share = 1.0 / (1.0 + math.exp(-k_delta))
+
+    p_user_win = p_decisive * win_share
+    p_ai_win = p_decisive * (1.0 - win_share)
+
+    # Convert to percentages rounded to 1 decimal place
+    user_win_pct = round(max(0.5, min(95.0, p_user_win * 100.0)), 1)
+    ai_win_pct = round(max(0.5, min(95.0, p_ai_win * 100.0)), 1)
+    # Residual allocation guarantees exactly 100.0% sum
+    draw_pct = round(100.0 - user_win_pct - ai_win_pct, 1)
+
+    if draw_pct < 0.0:
+        draw_pct = 0.0
+        ai_win_pct = round(100.0 - user_win_pct, 1)
+
+    return {
+        'user_win': user_win_pct,
+        'draw': draw_pct,
+        'ai_win': ai_win_pct,
+        'win': user_win_pct,
+        'loss': ai_win_pct,
+    }
 
 
 # ════════════════════════════════════════════════════════════════
@@ -803,9 +884,10 @@ def simulate_match(user_starting_xi_players, user_bench_players,
     ai_starting_xi = ai_squad['starting_xi']
     ai_bench = ai_squad['bench']
 
-    # Calculate team strengths
+    # Calculate team strengths and outcome probabilities
     user_strength = calculate_team_strength(user_starting_xi_players, difficulty)
     ai_strength = calculate_team_strength(ai_starting_xi, difficulty)
+    probabilities = calculate_match_probabilities(user_strength, ai_strength)
 
     # Generate scoreline
     user_goals, ai_goals = generate_scoreline(user_strength, ai_strength)
@@ -903,5 +985,6 @@ def simulate_match(user_starting_xi_players, user_bench_players,
         },
         'motm': motm,
         'match_analysis': analysis,
+        'probabilities': probabilities,
     }
 

@@ -811,6 +811,17 @@ document.addEventListener('DOMContentLoaded', () => {
         stepSquadReveal.classList.remove('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
+        // Render win probabilities if available
+        const probContainer = document.getElementById('reveal-probabilities');
+        if (probContainer && data.probabilities) {
+            probContainer.classList.remove('hidden');
+            probContainer.innerHTML = renderProbabilitiesBar(
+                data.probabilities,
+                data.user_team ? data.user_team.strength : null,
+                data.ai_team ? data.ai_team.strength : null
+            );
+        }
+
         // Render user team pitch
         renderRevealPitch('reveal-user-pitch', data.user_team.starting_xi);
         renderRevealBench('reveal-user-bench', data.user_team.bench);
@@ -818,6 +829,36 @@ document.addEventListener('DOMContentLoaded', () => {
         // Render AI team pitch
         renderRevealPitch('reveal-ai-pitch', data.ai_team.starting_xi);
         renderRevealBench('reveal-ai-bench', data.ai_team.bench);
+    }
+
+    /**
+     * Render a 3-way win / draw / loss probability bar.
+     */
+    function renderProbabilitiesBar(probs, userStrength, aiStrength) {
+        if (!probs) return '';
+        const userWin = probs.user_win || probs.win || 0;
+        const draw = probs.draw || 0;
+        const aiWin = probs.ai_win || probs.loss || 0;
+
+        return `
+        <div class="p-3.5 rounded-xl bg-gray-50 dark:bg-navy-800/60 border border-gray-200/50 dark:border-navy-700/50">
+            <div class="flex items-center justify-between text-xs font-bold mb-2">
+                <span class="text-gold-500">Your Team: ${userWin}%</span>
+                <span class="text-gray-500 dark:text-gray-400">Draw: ${draw}%</span>
+                <span class="text-navy-400 dark:text-navy-300">AI Select XI: ${aiWin}%</span>
+            </div>
+            <div class="flex h-3 rounded-full overflow-hidden bg-gray-200 dark:bg-navy-950 mb-2">
+                <div class="bg-gold-500 transition-all duration-700" style="width: ${userWin}%" title="Your Win: ${userWin}%"></div>
+                <div class="bg-gray-400 dark:bg-gray-500 transition-all duration-700" style="width: ${draw}%" title="Draw: ${draw}%"></div>
+                <div class="bg-navy-600 dark:bg-navy-400 transition-all duration-700" style="width: ${aiWin}%" title="AI Win: ${aiWin}%"></div>
+            </div>
+            <div class="flex items-center justify-between text-[10px] text-gray-400 uppercase tracking-widest">
+                <span>Rating: ${userStrength || '—'}</span>
+                <span class="font-semibold text-navy-800 dark:text-gray-300">Simulated Match Probability</span>
+                <span>Rating: ${aiStrength || '—'}</span>
+            </div>
+        </div>
+        `;
     }
 
     /**
@@ -977,8 +1018,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (userScoreEl) userScoreEl.textContent = data.user_team.score;
         if (aiScoreEl) aiScoreEl.textContent = data.ai_team.score;
 
-        // Stats bars
-        renderStatsBars(data.user_team.stats, data.ai_team.stats);
+        // Stats & Probability bars
+        renderStatsBars(
+            data.user_team.stats,
+            data.ai_team.stats,
+            data.probabilities,
+            data.user_team ? data.user_team.strength : null,
+            data.ai_team ? data.ai_team.strength : null
+        );
 
         // Goalscorers
         renderGoalscorers('result-user-goals', data.user_team.goalscorers);
@@ -999,9 +1046,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (analysisEl) analysisEl.textContent = data.match_analysis;
     }
 
-    function renderStatsBars(userStats, aiStats) {
+    function renderStatsBars(userStats, aiStats, probs, userStrength, aiStrength) {
         const container = document.getElementById('result-stats');
         if (!container) return;
+
+        let probHtml = '';
+        if (probs) {
+            probHtml = `
+            <div class="mb-4">
+                <p class="text-center text-[10px] text-gray-400 uppercase tracking-widest mb-1.5 font-semibold">Simulated Outcome Probabilities</p>
+                ${renderProbabilitiesBar(probs, userStrength, aiStrength)}
+            </div>
+            `;
+        }
 
         const stats = [
             { label: 'Possession', user: userStats.possession, ai: aiStats.possession, suffix: '%' },
@@ -1009,7 +1066,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { label: 'Shots on Target', user: userStats.shots_on_target, ai: aiStats.shots_on_target, suffix: '' },
         ];
 
-        container.innerHTML = stats.map(s => {
+        container.innerHTML = probHtml + stats.map(s => {
             const total = s.user + s.ai || 1;
             const userPct = (s.user / total) * 100;
             const aiPct = (s.ai / total) * 100;
