@@ -261,6 +261,69 @@ def test_forgot_password_generic_confirmation_and_throttle(mock_send_email, clie
     assert b"If an account exists for this email" in res3.data
 
 
+@patch('app.auth_routes.send_password_reset_email')
+def test_forgot_password_cooldown_when_profile_missing(mock_send_email, client, in_memory_user_store, mock_firebase_auth):
+    """
+    Audit P2: Password-reset cooldown must function properly even when the user's
+    Firestore profile document is missing (e.g. created directly in Auth).
+    """
+    # User exists in Firebase Auth, but NOT in user_store profiles
+    uid = "user-missing-profile-uid"
+    assert uid not in in_memory_user_store.users
+
+    mock_user_rec = MagicMock()
+    mock_user_rec.uid = uid
+    mock_user_rec.display_name = None
+    mock_firebase_auth.get_user_by_email.return_value = mock_user_rec
+    mock_firebase_auth.generate_password_reset_link.return_value = "https://kickoffxi.firebaseapp.com/__/auth/action?mode=resetPassword&oobCode=oob99999"
+
+    # 1. First request succeeds and dispatches reset email
+    res1 = client.post('/forgot-password', data={'email': 'noprofile@example.com'})
+    assert res1.status_code == 200
+    assert b"If an account exists for this email" in res1.data
+    mock_send_email.assert_called_once()
+
+    # 2. Second request within 60s must be throttled (email NOT dispatched)
+    mock_send_email.reset_mock()
+    res2 = client.post('/forgot-password', data={'email': 'noprofile@example.com'})
+    assert res2.status_code == 200
+    assert b"If an account exists for this email" in res2.data
+    mock_send_email.assert_not_called()
+
+
+def test_firestore_user_store_throttle_missing_profile():
+    """
+    Audit P2: Verify FirestoreUserStore.check_and_update_reset_throttle creates
+    the throttle record with merge=True when document does not exist.
+    """
+    from app.user_store import FirestoreUserStore
+
+    mock_db = MagicMock()
+    mock_user_ref = MagicMock()
+    mock_db.collection.return_value.document.return_value = mock_user_ref
+
+    mock_snap = MagicMock()
+    mock_snap.exists = False
+    mock_snap.to_dict.return_value = None
+
+    mock_txn = MagicMock()
+    mock_user_ref.get.return_value = mock_snap
+
+    # Make transactional decorator just call the func with transaction
+    with patch('google.cloud.firestore.transactional', lambda fn: fn):
+        store = FirestoreUserStore(db=mock_db)
+        store.db.transaction.return_value = mock_txn
+
+        allowed, remaining = store.check_and_update_reset_throttle("uid-missing", cooldown_seconds=60)
+        assert allowed is True
+        assert remaining == 0
+        # Verify transaction.set was called with merge=True
+        mock_txn.set.assert_called_once()
+        call_args = mock_txn.set.call_args
+        assert call_args[1].get('merge') is True
+        assert 'last_reset_request_at' in call_args[0][1]
+
+
 @patch('app.auth_routes.IdentityClient')
 def test_reset_password_page_states_and_headers(mock_id_client_class, client):
     mock_id_client = MagicMock()

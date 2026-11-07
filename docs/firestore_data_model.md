@@ -102,6 +102,44 @@ Hierarchical subcollection scoped strictly to the owning user.
 
 ---
 
+## 4. Concurrency Control and Data Integrity
+
+This section documents the concurrency model and transactional guarantees implemented in KickoffXI across Firebase Authentication and Cloud Firestore:
+
+1. **Username Uniqueness via Firestore Transactions**:
+   - The reservation of a username in `usernames/{username_normalized}` and the creation of `users/{uid}` are executed together inside an atomic `@firestore.transactional` block.
+   - If two concurrent registration requests attempt to claim the same username, Firestore detects the read-write conflict; one transaction succeeds while the other encounters the reserved record and raises `UsernameAlreadyTakenError`.
+
+2. **Password-Reset Cooldown via Atomic Transactions**:
+   - The 60-second password reset cooldown is evaluated and updated using `@firestore.transactional`.
+   - The transaction reads `last_reset_request_at`, verifies the cooldown period, and applies `transaction.set(user_ref, {'last_reset_request_at': now_iso, 'updated_at': now_iso}, merge=True)`.
+   - Using `merge=True` ensures cooldown tracking functions atomically even if the user's Firestore profile document was not previously created or is temporarily missing, preventing cooldown bypasses.
+
+3. **Atomic Document-Level Squad Writes**:
+   - Each saved squad is stored as a single, self-contained document in `users/{uid}/saved_squads/{squadId}`, including its metadata and 18 player associations.
+   - In Firestore, individual document writes (`doc_ref.set()`, `doc_ref.update()`) are inherently atomic.
+   - Squad updates execute directly against `doc_ref.update(...)` without redundant pre-reads. If another request concurrently deletes the squad, Firestore throws a `NotFound` exception, which is caught to return a clean `404 Not Found` response rather than reporting a false success or crashing.
+
+4. **Cryptographic Ownership Enforcement**:
+   - All Firestore document paths are structurally partitioned under `users/{uid}/`.
+   - The `uid` is never accepted from client payloads or request URLs; it is cryptographically extracted and verified on every request from the server-side Firebase session cookie (`kxi_session`).
+
+5. **Automatic Conflict Retries**:
+   - The Google Cloud Firestore client automatically manages optimistic concurrency control and retries transaction conflicts with exponential backoff.
+   - No custom retry-on-lock logic is required in application code.
+
+6. **Soft Cap on Saved Squads**:
+   - The 50-squad user quota is enforced as a **soft limit**. Before creating or duplicating a squad, the collection is counted. If the count reaches 50, a `SquadLimitReachedError` is raised and mapped to an HTTP 400 error.
+   - Because creation does not employ a global counter lock or cross-document transaction across the entire subcollection, simultaneous requests may slightly exceed the 50-squad threshold under high concurrency. This intentional trade-off avoids distributed lock contention and keeps squad creation fast.
+
+7. **Dual-Store Boundary (Firebase Auth vs. Firestore)**:
+   - Firebase Authentication and Cloud Firestore are independent distributed services and do not participate in a single two-phase distributed transaction.
+   - Account creation creates the Firebase Auth user first and then creates the Firestore profile documents transactionally. If profile creation fails, compensating cleanup logic is triggered.
+
+> **Note on Distributed Guarantees**: While critical state transitions (username reservation, profile creation, password reset cooldown, document updates) are guarded by Firestore ACID transactions or atomic operations, the application is not claimed to be completely race-condition-free across all distributed boundaries (e.g., simultaneous creation against the soft squad quota).
+
+---
+
 ## 5. Indexes
 
 Because queries are strictly targeted:

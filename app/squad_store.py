@@ -28,6 +28,8 @@ from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List
 
 from app.firebase_client import get_firestore_client
+from firebase_admin import exceptions as fb_exceptions
+from google.api_core.exceptions import NotFound as GoogleAPINotFound
 
 SQUAD_ID_REGEX = re.compile(r'^[A-Za-z0-9_-]{1,64}$')
 MAX_SQUADS_PER_USER = 50
@@ -190,18 +192,17 @@ class FirestoreSquadStore(BaseSquadStore):
             return False
 
         doc_ref = self._squads_col(uid).document(squad_id)
-        snap = doc_ref.get()
-        if not snap.exists:
-            return False
-
         now_iso = datetime.now(timezone.utc).isoformat()
-        doc_ref.update({
-            'name': name.strip(),
-            'formation': formation.strip(),
-            'updated_at': now_iso,
-            'players': players
-        })
-        return True
+        try:
+            doc_ref.update({
+                'name': name.strip(),
+                'formation': formation.strip(),
+                'updated_at': now_iso,
+                'players': players
+            })
+            return True
+        except (fb_exceptions.NotFoundError, GoogleAPINotFound):
+            return False
 
     def delete_squad(self, uid: str, squad_id: str) -> bool:
         if not is_valid_squad_id(squad_id):

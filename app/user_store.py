@@ -210,11 +210,10 @@ class FirestoreUserStore(BaseUserStore):
         @firestore.transactional
         def _txn_throttle(transaction):
             snap = user_ref.get(transaction=transaction)
-            if not snap.exists:
-                return True, 0
-
-            data = snap.to_dict() or {}
-            last_request = data.get('last_reset_request_at')
+            last_request = None
+            if snap.exists:
+                data = snap.to_dict() or {}
+                last_request = data.get('last_reset_request_at')
 
             if last_request:
                 try:
@@ -226,10 +225,10 @@ class FirestoreUserStore(BaseUserStore):
                 except Exception:
                     pass
 
-            transaction.update(user_ref, {
+            transaction.set(user_ref, {
                 'last_reset_request_at': now_iso,
                 'updated_at': now_iso
-            })
+            }, merge=True)
             return True, 0
 
         transaction = self.db.transaction()
@@ -303,10 +302,7 @@ class InMemoryUserStore(BaseUserStore):
         uid: str,
         cooldown_seconds: int = 60
     ) -> Tuple[bool, int]:
-        user = self.users.get(uid)
-        if not user:
-            return True, 0
-
+        user = self.users.setdefault(uid, {'uid': uid})
         now = datetime.now(timezone.utc)
         now_iso = now.isoformat()
         last_request = user.get('last_reset_request_at')

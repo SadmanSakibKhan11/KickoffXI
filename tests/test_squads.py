@@ -6,6 +6,10 @@ Tests squad CRUD, structural ownership isolation, player-key boundary,
 """
 
 
+from unittest.mock import MagicMock, patch
+from app.squad_store import SquadLimitReachedError, FirestoreSquadStore
+
+
 def _build_valid_433_payload(loader):
     """Helper to build a valid 4-3-3 starting XI and bench from CSVDataLoader."""
     get_p = lambda pos: [p for p in loader.players if p.primary_position == pos]
@@ -195,3 +199,97 @@ def test_unavailable_player_handling(client, in_memory_squad_store, mock_firebas
     assert unavail['available'] is False
     assert unavail['id'] is None
     assert 'Unknown Player' in unavail['name']
+
+
+def test_update_squad_disappears_concurrently(client, app, in_memory_squad_store, mock_firebase_auth):
+    """
+    Audit S4: Updating a squad that disappears concurrently (deleted by another request)
+    must return a 404 response and not report success.
+    """
+    mock_firebase_auth.verify_session_cookie.return_value = {
+        'uid': 'user_A',
+        'sub': 'user_A',
+        'name': 'Alice',
+        'email': 'alice@example.com'
+    }
+    client.set_cookie('kxi_session', 'mock_cookie_user_A')
+
+    starters, bench = _build_valid_433_payload(app.data_loader)
+    squad_id = in_memory_squad_store.create_squad(
+        uid="user_A",
+        name="Original Squad",
+        formation="4-3-3",
+        players=[{'player_key': 'germany:manuel-neuer', 'role': 'starter', 'slot': '10'}]
+    )
+
+    # Simulate race condition: squad deleted right before update completes
+    with patch.object(in_memory_squad_store, 'update_squad', return_value=False):
+        res = client.put(
+            f'/api/saved-squads/{squad_id}',
+            json={
+                'name': 'Updated Squad',
+                'formation': '4-3-3',
+                'starting_xi': starters,
+                'bench': bench
+            }
+        )
+        assert res.status_code == 404
+        assert f"Saved squad with ID {squad_id} not found." in res.get_json()['error']
+
+
+def test_firestore_update_squad_handles_not_found():
+    """
+    Audit S4: Verify FirestoreSquadStore.update_squad handles GoogleAPINotFound
+    and returns False without raising an unhandled exception or pre-reading.
+    """
+    from google.api_core.exceptions import NotFound as GoogleAPINotFound
+
+    mock_db = MagicMock()
+    mock_doc = MagicMock()
+    mock_doc.update.side_effect = GoogleAPINotFound("Document not found")
+    mock_db.collection.return_value.document.return_value.collection.return_value.document.return_value = mock_doc
+
+    store = FirestoreSquadStore(db=mock_db)
+    result = store.update_squad(
+        uid="user_A",
+        squad_id="squad123",
+        name="Name",
+        formation="4-3-3",
+        players=[]
+    )
+
+    assert result is False
+    # Ensure doc_ref.get() was NOT called (no redundant read)
+    mock_doc.get.assert_not_called()
+    mock_doc.update.assert_called_once()
+
+
+def test_duplicate_squad_at_limit_returns_400(client, in_memory_squad_store, mock_firebase_auth):
+    """
+    Audit S7: Duplicating a squad when at the 50-squad limit must return
+    HTTP 400 with a user-friendly error message, not HTTP 500.
+    """
+    mock_firebase_auth.verify_session_cookie.return_value = {
+        'uid': 'user_A',
+        'sub': 'user_A',
+        'name': 'Alice',
+        'email': 'alice@example.com'
+    }
+    client.set_cookie('kxi_session', 'mock_cookie_user_A')
+
+    squad_id = in_memory_squad_store.create_squad(
+        uid="user_A",
+        name="Original Squad",
+        formation="4-3-3",
+        players=[{'player_key': 'germany:manuel-neuer', 'role': 'starter', 'slot': '10'}]
+    )
+
+    # Simulate 50 squads limit reached on duplicate
+    with patch.object(
+        in_memory_squad_store,
+        'duplicate_squad',
+        side_effect=SquadLimitReachedError("Squad limit of 50 reached. Please delete an older squad.")
+    ):
+        res = client.post(f'/api/saved-squads/{squad_id}/duplicate', json={'name': 'Duplicate Squad'})
+        assert res.status_code == 400
+        assert "Squad limit of 50 reached" in res.get_json()['error']

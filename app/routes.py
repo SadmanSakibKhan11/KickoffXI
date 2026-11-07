@@ -654,7 +654,10 @@ def api_update_saved_squad(squad_id):
             'slot': category,
         })
 
-    squad_store.update_squad(uid, squad_id, name, formation_name, players)
+    updated = squad_store.update_squad(uid, squad_id, name, formation_name, players)
+    if not updated:
+        return jsonify({'error': f'Saved squad with ID {squad_id} not found.'}), 404
+
     return jsonify({'id': squad_id, 'message': f"Squad '{name}' updated successfully."})
 
 
@@ -688,7 +691,7 @@ def api_duplicate_saved_squad(squad_id):
     API: Duplicate an existing saved squad under a new name.
     Scoped to the logged-in user.
     """
-    from app.squad_store import get_squad_store, is_valid_squad_id
+    from app.squad_store import get_squad_store, is_valid_squad_id, SquadLimitReachedError
     from app.session_auth import get_current_user_from_request
 
     if not is_valid_squad_id(squad_id):
@@ -707,7 +710,11 @@ def api_duplicate_saved_squad(squad_id):
     except Exception:
         pass
 
-    new_id = squad_store.duplicate_squad(uid, squad_id, new_name)
+    try:
+        new_id = squad_store.duplicate_squad(uid, squad_id, new_name)
+    except SquadLimitReachedError as e:
+        return jsonify({'error': str(e)}), 400
+
     if new_id is None:
         return jsonify({'error': f'Saved squad with ID {squad_id} not found.'}), 404
 
