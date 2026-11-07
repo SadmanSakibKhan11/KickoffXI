@@ -3,7 +3,7 @@ services:
     name: kickoffxi
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn main:app
+    startCommand: gunicorn --workers 1 --threads 2 --worker-class gthread --max-requests 500 --max-requests-jitter 50 main:app
     envVars:
       - key: FLASK_CONFIG
         value: production
