@@ -21,6 +21,7 @@ API Routes:
 from flask import Blueprint, render_template, request, jsonify, current_app, session
 import random
 import logging
+from app.session_auth import login_required
 
 logger = logging.getLogger(__name__)
 
@@ -424,59 +425,65 @@ def api_simulate_match():
 # ============================================================
 
 @main_bp.route('/api/saved-squads', methods=['GET'])
+@login_required
 def api_list_saved_squads():
     """
     API: List all saved squads for the logged-in user.
     Returns JSON list sorted by last updated (newest first).
     """
-    from app.auth_routes import login_required as _lr
-    from app.saved_squads_db import list_squads, get_db_path
+    from app.squad_store import get_squad_store
+    from app.session_auth import get_current_user_from_request
 
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({'error': 'Login required.', 'login_required': True}), 401
+    user = get_current_user_from_request()
+    uid = user['uid']
 
-    db_path = get_db_path(current_app)
-    squads = list_squads(db_path, user_id)
+    squad_store = get_squad_store()
+    squads = squad_store.list_squads(uid)
     return jsonify({'squads': squads})
 
 
-@main_bp.route('/api/saved-squads/<int:squad_id>', methods=['GET'])
+@main_bp.route('/api/saved-squads/<string:squad_id>', methods=['GET'])
+@login_required
 def api_get_saved_squad(squad_id):
     """
     API: Retrieve one saved squad with fully resolved player data.
-    Scoped to the logged-in user — returns 404 if not owned.
+    Scoped to the logged-in user — returns 404 if not owned or invalid.
     """
-    from app.saved_squads_db import get_squad_raw, get_db_path
+    from app.squad_store import get_squad_store, is_valid_squad_id
+    from app.session_auth import get_current_user_from_request
 
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({'error': 'Login required.', 'login_required': True}), 401
+    if not is_valid_squad_id(squad_id):
+        return jsonify({'error': f'Saved squad with ID {squad_id} not found.'}), 404
 
-    db_path = get_db_path(current_app)
-    squad_data = get_squad_raw(db_path, squad_id, user_id)
+    user = get_current_user_from_request()
+    uid = user['uid']
+
+    squad_store = get_squad_store()
+    squad_data = squad_store.get_squad_raw(uid, squad_id)
     if not squad_data:
         return jsonify({'error': f'Saved squad with ID {squad_id} not found.'}), 404
 
-    players_by_id = current_app.data_loader.players_by_id
+    data_loader = current_app.data_loader
 
     # Resolve player data, marking unavailable players
     starters = []
     bench_players = []
 
-    for p_ref in squad_data['players']:
-        player_obj = players_by_id.get(p_ref['player_id'])
+    for p_ref in squad_data.get('players', []):
+        player_key = p_ref.get('player_key')
+        player_obj = data_loader.get_player_by_key(player_key)
 
         if player_obj:
             resolved = player_obj.to_dict()
             resolved['available'] = True
-            resolved['role'] = p_ref['role']
-            resolved['slot'] = p_ref['slot']
+            resolved['role'] = p_ref.get('role')
+            resolved['slot'] = p_ref.get('slot')
         else:
             # Player no longer exists in CSV data
             resolved = {
-                'id': p_ref['player_id'],
-                'name': f'Unknown Player (ID: {p_ref["player_id"]})',
+                'id': None,
+                'key': player_key,
+                'name': f'Unknown Player ({player_key})',
                 'nationality': '',
                 'primary_position': '',
                 'secondary_position': None,
@@ -484,11 +491,11 @@ def api_get_saved_squad(squad_id):
                 'player_image_url': '',
                 'frame_image_url': '',
                 'available': False,
-                'role': p_ref['role'],
-                'slot': p_ref['slot'],
+                'role': p_ref.get('role'),
+                'slot': p_ref.get('slot'),
             }
 
-        if p_ref['role'] == 'starter':
+        if p_ref.get('role') == 'starter':
             starters.append(resolved)
         else:
             bench_players.append(resolved)
@@ -497,26 +504,27 @@ def api_get_saved_squad(squad_id):
         'id': squad_data['id'],
         'name': squad_data['name'],
         'formation': squad_data['formation'],
-        'created_at': squad_data['created_at'],
-        'updated_at': squad_data['updated_at'],
+        'created_at': squad_data.get('created_at', ''),
+        'updated_at': squad_data.get('updated_at', ''),
         'starters': starters,
         'bench': bench_players,
     })
 
 
 @main_bp.route('/api/saved-squads', methods=['POST'])
+@login_required(check_revoked=True)
 def api_create_saved_squad():
     """
     API: Create a new saved squad for the logged-in user.
-    Validates via the existing validate_squad() before inserting.
+    Validates via validate_squad() before persisting with player keys.
     """
     from app.match_validation import validate_squad, get_position_category
     from app.formations import FORMATIONS
-    from app.saved_squads_db import create_squad, get_db_path
+    from app.squad_store import get_squad_store, SquadLimitReachedError
+    from app.session_auth import get_current_user_from_request
 
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({'error': 'Login required.', 'login_required': True}), 401
+    user = get_current_user_from_request(check_revoked=True)
+    uid = user['uid']
 
     try:
         data = request.get_json(force=True)
@@ -526,7 +534,6 @@ def api_create_saved_squad():
     if not data:
         return jsonify({'error': 'Empty request body.'}), 400
 
-    # Extract and validate name
     name = (data.get('name') or '').strip()
     if not name:
         return jsonify({'error': 'Squad name is required.'}), 400
@@ -537,7 +544,7 @@ def api_create_saved_squad():
 
     players_by_id = current_app.data_loader.players_by_id
 
-    # Reuse existing squad validation
+    # Validate squad composition
     validation = validate_squad(
         formation_name=formation_name,
         starting_xi=starting_xi_data,
@@ -548,48 +555,55 @@ def api_create_saved_squad():
     if not validation['valid']:
         return jsonify({'error': 'Squad validation failed.', 'errors': validation['errors']}), 400
 
-    # Build DB-ready player lists
-    starters = []
+    # Build player records with stable player keys
+    players = []
     for entry in starting_xi_data:
-        starters.append({
-            'player_id': entry['player_id'],
+        player = players_by_id.get(entry['player_id'])
+        players.append({
+            'player_key': player.key,
+            'role': 'starter',
             'slot': str(entry['slot_index']),
         })
 
-    bench_players = []
     for entry in bench_data:
         pid = entry['player_id']
         player = players_by_id.get(pid)
         category = get_position_category(player.primary_position) if player else 'MID'
-        bench_players.append({
-            'player_id': pid,
+        players.append({
+            'player_key': player.key,
+            'role': 'bench',
             'slot': category,
         })
 
-    db_path = get_db_path(current_app)
-    squad_id = create_squad(db_path, name, formation_name, starters, bench_players, user_id)
+    squad_store = get_squad_store()
+    try:
+        squad_id = squad_store.create_squad(uid, name, formation_name, players)
+    except SquadLimitReachedError as e:
+        return jsonify({'error': str(e)}), 400
 
     return jsonify({'id': squad_id, 'message': f"Squad '{name}' saved successfully."}), 201
 
 
-@main_bp.route('/api/saved-squads/<int:squad_id>', methods=['PUT'])
+@main_bp.route('/api/saved-squads/<string:squad_id>', methods=['PUT'])
+@login_required(check_revoked=True)
 def api_update_saved_squad(squad_id):
     """
-    API: Update an existing saved squad (rename and/or replace players).
+    API: Update an existing saved squad.
     Scoped to the logged-in user — returns 404 if not owned.
     """
     from app.match_validation import validate_squad, get_position_category
     from app.formations import FORMATIONS
-    from app.saved_squads_db import update_squad, get_squad_raw, get_db_path
+    from app.squad_store import get_squad_store, is_valid_squad_id
+    from app.session_auth import get_current_user_from_request
 
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({'error': 'Login required.', 'login_required': True}), 401
+    if not is_valid_squad_id(squad_id):
+        return jsonify({'error': f'Saved squad with ID {squad_id} not found.'}), 404
 
-    db_path = get_db_path(current_app)
+    user = get_current_user_from_request(check_revoked=True)
+    uid = user['uid']
 
-    # Verify squad exists and belongs to user
-    existing = get_squad_raw(db_path, squad_id, user_id)
+    squad_store = get_squad_store()
+    existing = squad_store.get_squad_raw(uid, squad_id)
     if not existing:
         return jsonify({'error': f'Saved squad with ID {squad_id} not found.'}), 404
 
@@ -601,7 +615,6 @@ def api_update_saved_squad(squad_id):
     if not data:
         return jsonify({'error': 'Empty request body.'}), 400
 
-    # Extract and validate name
     name = (data.get('name') or '').strip()
     if not name:
         return jsonify({'error': 'Squad name is required.'}), 400
@@ -612,7 +625,6 @@ def api_update_saved_squad(squad_id):
 
     players_by_id = current_app.data_loader.players_by_id
 
-    # Reuse existing squad validation
     validation = validate_squad(
         formation_name=formation_name,
         starting_xi=starting_xi_data,
@@ -623,65 +635,70 @@ def api_update_saved_squad(squad_id):
     if not validation['valid']:
         return jsonify({'error': 'Squad validation failed.', 'errors': validation['errors']}), 400
 
-    # Build DB-ready player lists
-    starters = []
+    players = []
     for entry in starting_xi_data:
-        starters.append({
-            'player_id': entry['player_id'],
+        player = players_by_id.get(entry['player_id'])
+        players.append({
+            'player_key': player.key,
+            'role': 'starter',
             'slot': str(entry['slot_index']),
         })
 
-    bench_players = []
     for entry in bench_data:
         pid = entry['player_id']
         player = players_by_id.get(pid)
         category = get_position_category(player.primary_position) if player else 'MID'
-        bench_players.append({
-            'player_id': pid,
+        players.append({
+            'player_key': player.key,
+            'role': 'bench',
             'slot': category,
         })
 
-    update_squad(db_path, squad_id, name, formation_name, starters, bench_players, user_id)
-
+    squad_store.update_squad(uid, squad_id, name, formation_name, players)
     return jsonify({'id': squad_id, 'message': f"Squad '{name}' updated successfully."})
 
 
-@main_bp.route('/api/saved-squads/<int:squad_id>', methods=['DELETE'])
+@main_bp.route('/api/saved-squads/<string:squad_id>', methods=['DELETE'])
+@login_required(check_revoked=True)
 def api_delete_saved_squad(squad_id):
     """
-    API: Delete a saved squad (cascades to player associations).
-    Scoped to the logged-in user.
+    API: Delete a saved squad. Scoped to the logged-in user.
     """
-    from app.saved_squads_db import delete_squad, get_db_path
+    from app.squad_store import get_squad_store, is_valid_squad_id
+    from app.session_auth import get_current_user_from_request
 
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({'error': 'Login required.', 'login_required': True}), 401
+    if not is_valid_squad_id(squad_id):
+        return jsonify({'error': f'Saved squad with ID {squad_id} not found.'}), 404
 
-    db_path = get_db_path(current_app)
-    deleted = delete_squad(db_path, squad_id, user_id)
+    user = get_current_user_from_request(check_revoked=True)
+    uid = user['uid']
 
+    squad_store = get_squad_store()
+    deleted = squad_store.delete_squad(uid, squad_id)
     if not deleted:
         return jsonify({'error': f'Saved squad with ID {squad_id} not found.'}), 404
 
-    return jsonify({'message': f'Squad deleted successfully.'})
+    return jsonify({'message': 'Squad deleted successfully.'})
 
 
-@main_bp.route('/api/saved-squads/<int:squad_id>/duplicate', methods=['POST'])
+@main_bp.route('/api/saved-squads/<string:squad_id>/duplicate', methods=['POST'])
+@login_required(check_revoked=True)
 def api_duplicate_saved_squad(squad_id):
     """
     API: Duplicate an existing saved squad under a new name.
     Scoped to the logged-in user.
     """
-    from app.saved_squads_db import duplicate_squad, get_db_path
+    from app.squad_store import get_squad_store, is_valid_squad_id
+    from app.session_auth import get_current_user_from_request
 
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({'error': 'Login required.', 'login_required': True}), 401
+    if not is_valid_squad_id(squad_id):
+        return jsonify({'error': f'Saved squad with ID {squad_id} not found.'}), 404
 
-    db_path = get_db_path(current_app)
+    user = get_current_user_from_request(check_revoked=True)
+    uid = user['uid']
 
-    # Optional new name from request body
+    squad_store = get_squad_store()
+
     new_name = None
     try:
         data = request.get_json(silent=True)
@@ -690,8 +707,7 @@ def api_duplicate_saved_squad(squad_id):
     except Exception:
         pass
 
-    new_id = duplicate_squad(db_path, squad_id, user_id, new_name)
-
+    new_id = squad_store.duplicate_squad(uid, squad_id, new_name)
     if new_id is None:
         return jsonify({'error': f'Saved squad with ID {squad_id} not found.'}), 404
 

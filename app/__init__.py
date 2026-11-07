@@ -37,9 +37,10 @@ def create_app(config_name=None):
     # Load configuration
     app.config.from_object(config[config_name])
 
-    # Apply ProxyFix when in production behind reverse proxies (e.g. Render, Nginx)
-    # Ensures X-Forwarded-Proto is respected so SESSION_COOKIE_SECURE works seamlessly over HTTPS
+    # Apply ProxyFix and validate secrets when in production
     if config_name == 'production' or os.environ.get('FLASK_CONFIG') == 'production':
+        from config import ProductionConfig
+        ProductionConfig.validate_production()
         from werkzeug.middleware.proxy_fix import ProxyFix
         app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
@@ -52,19 +53,10 @@ def create_app(config_name=None):
     data_dir = os.path.abspath(os.path.join(app.root_path, '../data'))
     app.data_loader = CSVDataLoader(data_dir)
 
-    # Initialize SQLite database (shared by Saved Squads and Auth)
-    from app.saved_squads_db import init_db
-    from app.auth_db import init_auth_db
-    instance_dir = os.path.abspath(os.path.join(app.root_path, '../instance'))
-    db_path = os.path.join(instance_dir, 'saved_squads.db')
-    app.config['SAVED_SQUADS_DB'] = db_path
-    init_db(db_path)
-    init_auth_db(db_path)
-
     # Register context processor to inject default fallback image URL
     @app.context_processor
     def inject_defaults():
-        from flask import url_for, session
+        from flask import url_for
         from app.routes import COUNTRY_FLAGS
         default_img = app.config.get('DEFAULT_PLAYER_IMAGE', 'players/default.png')
         default_url = url_for('static', filename='img/' + default_img)
@@ -89,13 +81,9 @@ def create_app(config_name=None):
                 favicon_url = url_for('static', filename=f'img/branding/{fav_name}')
                 break
 
-        # Current user info for templates
-        current_user = None
-        if 'user_id' in session:
-            current_user = {
-                'id': session['user_id'],
-                'username': session.get('username', ''),
-            }
+        # Current user info for templates from Firebase session cookie
+        from app.session_auth import get_current_user_from_request
+        current_user = get_current_user_from_request()
 
         return {
             'default_player_image_url': default_url,
@@ -125,6 +113,15 @@ def create_app(config_name=None):
         )
 
     app.jinja_env.globals['flag_img'] = flag_img
+
+    # Clear revoked or invalid session cookies automatically
+    @app.after_request
+    def auto_clear_invalid_cookies(response):
+        from flask import g
+        if getattr(g, '_clear_cookie_needed', False):
+            from app.session_auth import clear_auth_cookie
+            clear_auth_cookie(response)
+        return response
 
     # Register blueprints / routes
     from app.routes import main_bp

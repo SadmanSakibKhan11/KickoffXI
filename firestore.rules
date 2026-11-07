@@ -1,0 +1,13 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Deny all direct client access from Web/Mobile SDKs.
+    // All read and write operations are performed server-side via the
+    // Firebase Admin SDK in Flask, which bypasses these security rules.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

@@ -50,11 +50,13 @@
                     <input type="text" id="username" name="username"
                            value="{{ username|default('') }}"
                            class="auth-input {% if errors and errors.username %}auth-input-error{% endif %}"
-                           placeholder="Choose a username"
+                           placeholder="3–20 characters (letters, numbers, _, ., -)"
                            autocomplete="username"
                            required>
                     {% if errors and errors.username %}
                     <p class="auth-field-error">{{ errors.username }}</p>
+                    {% else %}
+                    <p class="text-[11px] text-gray-400 dark:text-gray-500 mt-1">3–20 characters: letters, numbers, _, ., -</p>
                     {% endif %}
                 </div>
 

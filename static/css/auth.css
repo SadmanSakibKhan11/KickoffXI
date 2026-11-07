@@ -234,57 +234,6 @@
 }
 
 /* ============================================
-   OTP Input Group (6 digit boxes)
-   ============================================ */
-.otp-input-group {
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-.otp-digit {
-    width: 2.75rem;
-    height: 3.25rem;
-    text-align: center;
-    font-size: 1.25rem;
-    font-weight: 800;
-    font-family: 'Inter', monospace;
-    border: 1.5px solid #d1d5db;
-    border-radius: 0.75rem;
-    background: white;
-    color: #141e33;
-    outline: none;
-    transition: all 0.2s ease;
-}
-
-.otp-digit:focus {
-    border-color: #d4a017;
-    box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.1);
-}
-
-.dark .otp-digit {
-    background: #141e33;
-    border-color: #1e2d4d;
-    color: #e5e7eb;
-}
-
-.dark .otp-digit:focus {
-    border-color: #d4a017;
-    box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.15);
-}
-
-@media (max-width: 380px) {
-    .otp-digit {
-        width: 2.25rem;
-        height: 2.75rem;
-        font-size: 1rem;
-    }
-    .otp-input-group {
-        gap: 0.35rem;
-    }
-}
-
-/* ============================================
    Profile Page Components
    ============================================ */
 .profile-card {

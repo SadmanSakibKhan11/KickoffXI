@@ -7,6 +7,27 @@ import re
 logger = logging.getLogger(__name__)
 
 
+def slugify(text: str) -> str:
+    """
+    Slugify a string: NFKD normalization -> ASCII conversion -> lowercase ->
+    replace non-alphanumeric characters with hyphens -> trim hyphens.
+    """
+    if not text:
+        return ''
+    nfkd = unicodedata.normalize('NFKD', text)
+    ascii_text = ''.join(c for c in nfkd if not unicodedata.combining(c))
+    low = ascii_text.lower()
+    cleaned = re.sub(r'[^a-z0-9]+', '-', low)
+    return cleaned.strip('-')
+
+
+def make_player_key(nationality: str, name: str) -> str:
+    """
+    Construct a stable player identity key: <slug(nationality)>:<slug(name)>
+    """
+    return f"{slugify(nationality)}:{slugify(name)}"
+
+
 def sanitize_filename(name):
     """
     Convert a player name to a filesystem-safe filename.
@@ -67,6 +88,7 @@ class Player:
         self.secondary_position = secondary_position if secondary_position else None
         self.nationality = nationality
         self.overall = overall
+        self.key = make_player_key(self.nationality, self.name)
 
     @property
     def player_image_path(self):
@@ -136,6 +158,7 @@ class Player:
         """Serialize player to a dictionary (for JSON API responses)."""
         return {
             'id': self.id,
+            'key': self.key,
             'name': self.name,
             'nationality': self.nationality,
             'primary_position': self.primary_position,
@@ -158,6 +181,7 @@ class CSVDataLoader:
         self.data_dir = data_dir
         self.players = []
         self.players_by_id = {}
+        self.players_by_key = {}
         self.nationalities = []
         self.load_data()
 
@@ -251,6 +275,15 @@ class CSVDataLoader:
         
         self.players = players_list
         self.players_by_id = {p.id: p for p in self.players}
+        self.players_by_key = {}
+        for p in self.players:
+            if p.key in self.players_by_key:
+                logger.error(
+                    f"[ERROR] Duplicate player key '{p.key}' detected for player '{p.name}' (id={p.id}) "
+                    f"and '{self.players_by_key[p.key].name}' (id={self.players_by_key[p.key].id})."
+                )
+            else:
+                self.players_by_key[p.key] = p
         self.nationalities = sorted(list(set(p.nationality for p in self.players)))
         logger.info(f"[OK] Successfully loaded {len(self.players)} players from CSV files across {len(self.nationalities)} teams.")
 
@@ -261,6 +294,10 @@ class CSVDataLoader:
     def get_player_by_id(self, player_id):
         """Find a player by their integer ID."""
         return self.players_by_id.get(player_id)
+
+    def get_player_by_key(self, player_key):
+        """Find a player by their stable string key."""
+        return self.players_by_key.get(player_key)
 
     def get_players_by_nationality(self, nationality):
         """Returns all players of a specific nationality sorted by name."""

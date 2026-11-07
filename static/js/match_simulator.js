@@ -1299,10 +1299,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${updatedDate ? `<span class="ml-auto">${updatedDate}</span>` : ''}
                     </div>
                     <div class="card-actions">
-                        <button class="card-action-btn btn-use" onclick="window.MSim.useSquad(${sq.id})">Use Squad</button>
-                        <button class="card-action-btn btn-edit" onclick="window.MSim.editSquad(${sq.id})">Edit</button>
-                        <button class="card-action-btn btn-duplicate" onclick="window.MSim.duplicateSquad(${sq.id})">Duplicate</button>
-                        <button class="card-action-btn btn-delete" onclick="window.MSim.confirmDeleteSquad(${sq.id}, '${escapeHtml(sq.name).replace(/'/g, "\\'")}')">
+                        <button class="card-action-btn btn-use" onclick="window.MSim.useSquad('${sq.id}')">Use Squad</button>
+                        <button class="card-action-btn btn-edit" onclick="window.MSim.editSquad('${sq.id}')">Edit</button>
+                        <button class="card-action-btn btn-duplicate" onclick="window.MSim.duplicateSquad('${sq.id}')">Duplicate</button>
+                        <button class="card-action-btn btn-delete" onclick="window.MSim.confirmDeleteSquad('${sq.id}', '${escapeHtml(sq.name).replace(/'/g, "\\'")}')">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         </button>
                     </div>
@@ -1676,5 +1676,12 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmDeleteSquad,
         duplicateSquad,
     };
+
+    // Auto-load saved squad if 'load' parameter is present in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const loadParam = urlParams.get('load');
+    if (loadParam) {
+        loadSquadIntoBuilder(loadParam, 'use');
+    }
 
 });

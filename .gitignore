@@ -14,6 +14,18 @@ ENV/
 
 # Instance folder (SQLite databases)
 instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Backups and migration
+backups/
+migration_reports/
+
+# Firebase credentials and keys
+*-firebase-adminsdk-*.json
+serviceAccount*.json
+*.pem
 
 # IDE
 .vscode/

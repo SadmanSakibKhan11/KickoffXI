@@ -1,438 +1,139 @@
-# ⚽ KickoffXI — FIFA World Cup 2026 Player Database
+# ⚽ KickoffXI — FIFA World Cup 2026 Player Database & Match Simulator
 
-A full-featured web application for browsing and searching every player in the **FIFA World Cup 2026** tournament. Built with **Flask** and powered by CSV-based data, the app provides a fast, searchable player database with a modern, responsive UI.
+A full-featured web application for browsing every player in the **FIFA World Cup 2026** tournament, building custom squads, simulating matches, and saving squad configurations.
+
+Built with **Python / Flask**, backed by **Firebase Authentication** and **Cloud Firestore** for user accounts and saved squads, with static football tournament data served from CSV datasets.
 
 ---
 
 ## ✨ Features
 
-- **🏠 Home Page** — Hero banner, 8 randomly featured players, and a full teams overview
-- **🔍 Player Database** — Searchable and filterable grid of all players
-- **🏳️ Teams Browser** — Browse all participating nations with player counts and flag emojis
-- **📋 Team Detail** — View the full squad roster for any team
-- **⚽ Match Simulator** — Build custom squads (11 starters + 7 subs) and simulate World Cup matches against AI
-- **🌙 Dark / Light Theme** — Toggleable theme with persistent preference via `localStorage`
-- **⚡ Live Search & Filters** — Client-side instant filtering by name, nationality, and position
-- **🎬 Scroll Animations** — Smooth entrance animations powered by `IntersectionObserver`
-- **📡 REST API** — JSON endpoints for players and teams
+- **🏠 Home Page** — Hero banner, randomly featured players, and tournament teams overview.
+- **🔍 Player Database** — Searchable, filterable roster across all tournament teams.
+- **🏳️ Teams Browser & Detail** — Explore full squads for every participating nation.
+- **⚽ Match Simulator** — Pick a formation, build starting XI + bench, and simulate matches against AI difficulty tiers.
+- **📋 Saved Squads** — Authenticated users can save, edit, duplicate, and delete custom squads.
+- **🔐 Secure Authentication** — Username or email login, Remember Me support, and secure email password resets via Firebase.
+- **🌙 Dark / Light Theme** — Seamless theme toggle with persistent preferences.
+- **📡 REST API** — JSON endpoints for squads, validation, players, and simulation.
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Architecture & Tech Stack
 
-| Layer        | Technology                         |
-| ------------ | ---------------------------------- |
-| **Backend**  | Python 3, Flask 3.1                |
-| **Templating** | Jinja2                           |
-| **Frontend** | HTML5, Vanilla CSS, Vanilla JS     |
-| **Data**     | CSV files (no database required)   |
-| **Styling**  | Tailwind-inspired utility classes  |
+| Component | Technology | Description |
+|---|---|---|
+| **Backend** | Python 3.11+ / Flask 3.1 | Application factory, REST APIs, and Jinja2 server-rendered views |
+| **Authentication** | Firebase Authentication | Off-server secure credential storage and identity management |
+| **User Data Store** | Cloud Firestore (`asia-southeast1`) | User profiles, username reservations, and saved squad subcollections |
+| **Session Security** | Firebase Session Cookies | HttpOnly, SameSite=Lax, Secure in production |
+| **Tournament Data** | Static CSVs (`data/teams/*.csv`) | Preloaded into memory via `CSVDataLoader` with stable player identity keys |
+| **Frontend** | HTML5, Tailwind utility styles, Vanilla JS | Interactive pitch view, modal pickers, and live search |
 
 ---
 
 ## 📂 Project Structure
 
 ```
-project/
-├── main.py                  # Application entry point
-├── config.py                # Flask configuration (dev / prod)
-├── requirements.txt         # Python dependencies
+KickoffXI/
+├── main.py                  # Entry point for local dev & production
+├── config.py                # Environment configurations (dev / prod)
+├── firestore.rules          # Firestore deny-all security rules (server-side only)
+├── render.yaml              # Render deployment configuration
+├── requirements.txt         # Production dependencies
+├── requirements-dev.txt     # Development & testing dependencies (pytest)
 │
 ├── app/
-│   ├── __init__.py          # Application factory (create_app)
-│   ├── data_loader.py       # CSV data loader & Player model
-│   └── routes.py            # Page routes & REST API endpoints
+│   ├── __init__.py          # Flask application factory
+│   ├── auth_routes.py       # Authentication routes (/signup, /signin, /profile, /reset)
+│   ├── routes.py            # Main application & saved-squad REST routes
+│   ├── firebase_client.py   # Lazy Firebase Admin SDK initialization
+│   ├── identity_rest.py     # Identity Toolkit REST API client (passwords, resets)
+│   ├── session_auth.py      # Firebase session cookie verification & decorators
+│   ├── user_store.py        # Firestore access for users & usernames
+│   ├── squad_store.py       # Firestore access for user-owned saved squads
+│   ├── email_sender.py      # SMTP password reset email delivery
+│   ├── data_loader.py       # CSV data loader with stable player keys
+│   ├── match_validation.py  # Squad composition validation rules
+│   └── formations.py        # Tactical formations and slot mappings
 │
-├── data/
-│   └── teams/               # One CSV file per national team
-│       ├── argentina.csv
-│       ├── brazil.csv
-│       ├── england.csv
-│       ├── france.csv
-│       ├── germany.csv
-│       ├── japan.csv
-│       ├── mexico.csv
-│       ├── netherlands.csv
-│       ├── portugal.csv
-│       ├── south_korea.csv
-│       ├── spain.csv
-│       └── usa.csv
-│
-├── templates/
-│   ├── base.html            # Base layout template
-│   ├── index.html           # Home page
-│   ├── players.html         # Player database page
-│   ├── teams.html           # Teams overview page
-│   └── team_detail.html     # Single team roster page
-│
-└── static/
-    ├── css/
-    │   └── style.css        # Global styles
-    ├── js/
-    │   └── main.js          # Theme toggle, search, filters, modals
-    └── img/
-        ├── default.png      # Default player placeholder image
-        ├── hero-bg.png      # Hero banner background
-        └── players/         # Player headshot images
+├── data/teams/              # National team CSV datasets
+├── templates/               # Jinja2 HTML templates
+├── static/                  # CSS, JS, and image assets
+├── scripts/
+│   ├── check_firebase.py                # Firebase connectivity verification tool
+│   └── enrich_overall_ratings.py        # Player rating dataset utility
+└── tests/                   # Pytest test suite
 ```
 
 ---
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### 1. Prerequisites
+- Python 3.11+
+- Virtual environment tool (`venv`)
 
-- **Python 3.8+** installed on your system
-
-### Installation
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/SadmanSakibKhan11/KickoffXI.git
-   cd KickoffXI
-   ```
-
-2. **Create a virtual environment**
-
-   ```bash
-   python -m venv .venv
-   ```
-
-3. **Activate the virtual environment**
-
-   - **Windows:**
-     ```bash
-     .venv\Scripts\activate
-     ```
-   - **macOS / Linux:**
-     ```bash
-     source .venv/bin/activate
-     ```
-
-4. **Install dependencies**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-5. **Run the development server**
-
-   ```bash
-   python main.py
-   ```
-
-6. **Open in your browser**
-
-   Navigate to [http://localhost:5000](http://localhost:5000)
-
----
-
-## 📡 API Reference
-
-All API endpoints return JSON.
-
-### `GET /api/players`
-
-Returns a list of players. Supports the following query parameters:
-
-| Parameter     | Type   | Description                              |
-| ------------- | ------ | ---------------------------------------- |
-| `q`           | string | Search by name, nationality, or position |
-| `nationality` | string | Filter by exact nationality              |
-| `position`    | string | Filter by primary position               |
-| `secondary`   | string | Filter by secondary position             |
-
-**Example:**
-
-```
-GET /api/players?q=messi&nationality=Argentina
-```
-
-### `GET /api/players/<id>`
-
-Returns a single player by their integer ID.
-
-**Example:**
-
-```
-GET /api/players/1
-```
-
-### `GET /api/teams`
-
-Returns all teams with player counts and flag emojis.
-
----
-
-## 📄 CSV Data Format
-
-Each team CSV file in `data/teams/` follows this schema:
-
-| Column               | Required | Description                                |
-| -------------------- | -------- | ------------------------------------------ |
-| `name`               | ✅        | Player's full name                         |
-| `primary_position`   | ✅        | Main position (Goalkeeper, Defender, etc.)  |
-| `secondary_position` | ❌        | Optional secondary position                |
-| `nationality`        | ✅        | Country name (must match the file's team)  |
-| `image`              | ❌        | Relative path to headshot under `static/img/` |
-
-**Example (`germany.csv`):**
-
-```csv
-name,primary_position,secondary_position,nationality,image
-Manuel Neuer,Goalkeeper,,Germany,players/manual_neuer.png
-Jamal Musiala,Defender,Midfielder,Germany,players/jamal_musiala.png
-Florian Wirtz,Midfielder,Defender,Germany,players/default.png
-```
-
-### Adding a New Team
-
-1. Create a new CSV file in `data/teams/` (e.g., `italy.csv`)
-2. Follow the column format above
-3. Optionally add player images to `static/img/players/`
-4. Add the country's flag emoji to the `COUNTRY_FLAGS` dict in `app/routes.py`
-5. Restart the server — the new team will be loaded automatically
-
----
-
-## ⚙️ Configuration
-
-The app supports **development** and **production** configurations via `config.py`:
-
-| Setting                | Default                        | Description                           |
-| ---------------------- | ------------------------------ | ------------------------------------- |
-| `SECRET_KEY`           | `dev-secret-key-...`           | Flask secret key (override via env)   |
-| `APP_NAME`             | `KickoffXI`                    | Application display name              |
-| `APP_DESCRIPTION`      | `Player Database — Browse...`  | Application description               |
-| `DEFAULT_PLAYER_IMAGE` | `players/default.png`          | Fallback image for players            |
-| `DEBUG`                | `True` (dev) / `False` (prod)  | Flask debug mode                      |
-
-Set the environment via the `FLASK_CONFIG` environment variable:
-
+### 2. Installation
 ```bash
-# Production
-set FLASK_CONFIG=production    # Windows
-export FLASK_CONFIG=production # Linux/macOS
+# Clone the repository
+git clone https://github.com/SadmanSakibKhan11/KickoffXI.git
+cd KickoffXI
 
+# Create and activate virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements-dev.txt
+```
+
+### 3. Environment Configuration
+Copy `.env.example` to `.env` and fill in your development values:
+```bash
+cp .env.example .env
+```
+
+Key environment variables:
+| Variable | Description |
+|---|---|
+| `FLASK_CONFIG` | `development` or `production` |
+| `SECRET_KEY` | Flask session secret (random string in production) |
+| `FIREBASE_SERVICE_ACCOUNT_JSON` | Path to service account JSON key (or raw JSON string) |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Alternative path to service account JSON key |
+| `FIREBASE_WEB_API_KEY` | Firebase Web API Key for REST authentication |
+| `APP_BASE_URL` | Base URL for password reset links (e.g. `http://localhost:5000`) |
+| `AUTH_SESSION_COOKIE_NAME` | Cookie name (default: `kxi_session`) |
+| `AUTH_REMEMBER_DAYS` | Remember Me session duration in days (max 14) |
+| `MAIL_USERNAME` | Gmail address for password reset emails |
+| `MAIL_PASSWORD` | 16-character Google App Password |
+
+### 4. Running the Application
+```bash
 python main.py
 ```
+Open [http://localhost:5000](http://localhost:5000) in your browser.
 
 ---
 
-## 🤝 Contributing
+## 🧪 Running Tests
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/add-italy-squad`)
-3. Commit your changes (`git commit -m "Add Italy squad data"`)
-4. Push to the branch (`git push origin feature/add-italy-squad`)
-5. Open a Pull Request
-
----
-
-## 📝 License
-
-This project is open source and available under the [MIT License](LICENSE).
+The test suite runs completely offline with in-memory fakes and mocked network boundaries:
+```bash
+python -m pytest -v
+```
 
 ---
 
-<p align="center">
-  Built with ❤️ for the beautiful game
-</p>
-=======
+## 🔍 Diagnostics & Health Check
 
-              KICKOFFXI
-      FIFA WORLD CUP 2026 PLAYER DATABASE
+To test connection to your configured Firebase project:
+```bash
+python scripts/check_firebase.py
+```
 
+---
 
-Project Status
---------------
-Currently Under Development
+## 📄 License & Disclaimer
 
-Description
------------
-KickoffXI is a modern web application built using Flask that allows users
-to explore the players participating in the FIFA World Cup 2026.
-
-The goal of this project is to provide a fast, clean, and visually appealing
-player database where users can search players, browse national teams,
-view player profiles, and build their own Favorite XI.
-
-This project is being developed primarily for learning, portfolio purposes,
-and to demonstrate full-stack web development skills.
-
----------------------------------------------------------
-
-Current Features
-----------------
-• Modern responsive interface
-• FIFA World Cup inspired design
-• Live search
-• Search by player name
-• Search by nationality
-• Search by primary position
-• Search by secondary position
-• Featured players section
-• Team selection grid
-• Team pages
-• Player detail popup
-• Dark / Light mode
-• Responsive layout
-• Smooth transitions
-
----------------------------------------------------------
-
-Planned Features
-----------------
-• Complete World Cup 2026 player database
-• more than 20+ national teams
-• Custom player images
-• Favorite XI Builder
-• Seven-player bench
-• User dashboard
-• Advanced player filters
-• Improved animations
-• Performance optimization
-
----------------------------------------------------------
-
-Technology Stack
-----------------
-Backend
-• Python
-• Flask
-
-Frontend
-• HTML5
-• Tailwind CSS
-• JavaScript
-
-Data Storage
-• CSV Files
-  (One CSV file for each national team)
-
-Version Control
-• Git
-• GitHub
-
----------------------------------------------------------
-
-Project Structure
------------------
-
-project/
-
-│
-├── app/
-├── data/
-│   └── teams/
-│       ├── germany.csv
-│       ├── france.csv
-│       └── ...
-│
-├── static/
-│   ├── css/
-│   ├── js/
-│   └── img/
-│       └── players/
-│           ├── germany/
-│           ├── france/
-│           └── ...
-│
-├── templates/
-├── main.py
-└── requirements.txt
-
----------------------------------------------------------
-
-Player Database Format
-----------------------
-
-Each team is stored inside its own CSV file.
-
-Example:
-
-germany.csv
-
-Columns
-
-name
-nationality
-primary_position
-secondary_position
-image
-
-Example Entry
-
-Jamal Musiala,CAM,LW,Germany,players/germany/jamal_musiala.png
-
----------------------------------------------------------
-
-How to Add a New Team
----------------------
-
-1. Create a new CSV file.
-
-Example
-
-france.csv
-
-2. Place it inside
-
-data/teams/
-
-3. Create a matching image folder
-
-static/img/players/france/
-
-4. Add player images.
-
-5. Update the image column inside the CSV.
-
-No code changes should be required.
-
-
----------------------------------------------------------
-
-Roadmap
-
-[X] Flask project setup
-[X] Responsive UI
-[X] Homepage
-[X] Player database
-[X] CSV-based data storage
-[X] Live search
-[X] Team pages
-[ ] Complete Germany squad
-[ ] Remaining 47 teams
-[ ] Custom player images
-[ ] Favorite XI Builder
-[ ] User Dashboard
-[ ] Player comparison
-[ ] Statistics pages
-[ ] Final deployment
-
----------------------------------------------------------
-
-Disclaimer
-
-This project is a fan-made educational project created for learning and
-portfolio purposes only.
-
-It is not affiliated with, endorsed by, or sponsored by FIFA.
-
-All trademarks, player names, national team names, and tournament-related
-assets belong to their respective owners.
-
----------------------------------------------------------
-
-Author
-
-Sadman Sakib
-B.Sc. in Computer Science & Engineering
-
-Project Name:
-KickoffXI – FIFA World Cup 2026 Player Database
-
-=========================================================
-
+Educational student project created for learning purposes. Not affiliated with FIFA. All player and team trademarks belong to their respective owners.

@@ -42,6 +42,13 @@
             </div>
             {% endif %}
 
+            <!-- Success Message -->
+            {% if success_message %}
+            <div class="auth-success-message mb-4">
+                {{ success_message }}
+            </div>
+            {% endif %}
+
             <!-- Form -->
             <form method="POST" action="{{ url_for('auth.signin') }}" novalidate>
                 {% if request.args.get('next') %}
@@ -86,6 +93,18 @@
                     {% endif %}
                 </div>
 
+                <!-- Remember Me & Forgot Password -->
+                <div class="flex items-center justify-between my-3">
+                    <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" name="remember" value="true"
+                               class="w-4 h-4 rounded text-gold-500 bg-gray-100 dark:bg-navy-900 border-gray-300 dark:border-navy-700 focus:ring-gold-500 cursor-pointer">
+                        <span class="text-xs text-gray-600 dark:text-gray-300">Remember me</span>
+                    </label>
+                    <a href="{{ url_for('auth.forgot_password') }}" class="text-xs text-gold-600 dark:text-gold-400 hover:text-gold-700 dark:hover:text-gold-300 transition-colors">
+                        Forgot Password?
+                    </a>
+                </div>
+
                 <!-- Submit -->
                 <button type="submit" class="auth-btn w-full mt-1">
                     Sign In
@@ -93,10 +112,7 @@
             </form>
 
             <!-- Links -->
-            <div class="mt-5 text-center space-y-3">
-                <a href="{{ url_for('auth.forgot_password') }}" class="text-sm text-gold-600 dark:text-gold-400 hover:text-gold-700 dark:hover:text-gold-300 transition-colors">
-                    Forgot Password?
-                </a>
+            <div class="mt-5 text-center">
                 <p class="text-sm text-gray-500 dark:text-gray-400">
                     Don't have an account?
                     <a href="{{ url_for('auth.signup') }}" class="text-gold-600 dark:text-gold-400 hover:text-gold-700 dark:hover:text-gold-300 font-semibold transition-colors">
