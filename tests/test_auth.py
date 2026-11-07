@@ -11,7 +11,7 @@ from flask import session
 from firebase_admin import auth, exceptions as fb_exceptions
 
 from app.user_store import validate_username, validate_document_id_rules, UsernameAlreadyTakenError
-from app.identity_rest import IdentityApiError
+from app.identity_rest import IdentityClient, IdentityApiError
 from app.email_sender import send_password_reset_email
 
 
@@ -231,7 +231,7 @@ def test_login_required_page_redirect_and_api_401(client, mock_firebase_auth):
     assert json_data['login_required'] is True
 
 
-@patch('app.auth_routes.send_password_reset_email')
+@patch.object(IdentityClient, 'send_password_reset_email')
 def test_forgot_password_generic_confirmation_and_throttle(mock_send_email, client, in_memory_user_store, mock_firebase_auth):
     in_memory_user_store.create_user_profile("user-reset-uid", "resetuser", "reset@example.com")
 
@@ -239,13 +239,12 @@ def test_forgot_password_generic_confirmation_and_throttle(mock_send_email, clie
     mock_user_rec.uid = "user-reset-uid"
     mock_user_rec.display_name = "resetuser"
     mock_firebase_auth.get_user_by_email.return_value = mock_user_rec
-    mock_firebase_auth.generate_password_reset_link.return_value = "https://kickoffxi.firebaseapp.com/__/auth/action?mode=resetPassword&oobCode=oob12345"
 
     # 1. Registered email
     res1 = client.post('/forgot-password', data={'email': 'reset@example.com'})
     assert res1.status_code == 200
     assert b"If an account exists for this email" in res1.data
-    mock_send_email.assert_called_once()
+    mock_send_email.assert_called_once_with('reset@example.com')
 
     # 2. Second request within 60s is throttled
     mock_send_email.reset_mock()
@@ -261,7 +260,7 @@ def test_forgot_password_generic_confirmation_and_throttle(mock_send_email, clie
     assert b"If an account exists for this email" in res3.data
 
 
-@patch('app.auth_routes.send_password_reset_email')
+@patch.object(IdentityClient, 'send_password_reset_email')
 def test_forgot_password_cooldown_when_profile_missing(mock_send_email, client, in_memory_user_store, mock_firebase_auth):
     """
     Audit P2: Password-reset cooldown must function properly even when the user's
@@ -275,13 +274,12 @@ def test_forgot_password_cooldown_when_profile_missing(mock_send_email, client, 
     mock_user_rec.uid = uid
     mock_user_rec.display_name = None
     mock_firebase_auth.get_user_by_email.return_value = mock_user_rec
-    mock_firebase_auth.generate_password_reset_link.return_value = "https://kickoffxi.firebaseapp.com/__/auth/action?mode=resetPassword&oobCode=oob99999"
 
     # 1. First request succeeds and dispatches reset email
     res1 = client.post('/forgot-password', data={'email': 'noprofile@example.com'})
     assert res1.status_code == 200
     assert b"If an account exists for this email" in res1.data
-    mock_send_email.assert_called_once()
+    mock_send_email.assert_called_once_with('noprofile@example.com')
 
     # 2. Second request within 60s must be throttled (email NOT dispatched)
     mock_send_email.reset_mock()
@@ -413,25 +411,134 @@ def test_send_password_reset_email_timeout_raises_delivery_error(mock_smtp, app)
         assert "timed out" in str(exc_info.value).lower()
 
 
-@patch('app.auth_routes.send_password_reset_email')
+@patch.object(IdentityClient, 'send_password_reset_email')
 def test_forgot_password_email_delivery_failure_shows_safe_error(mock_send_email, client, in_memory_user_store, mock_firebase_auth):
     """Verify that email delivery failure returns a safe 500 error page without leaking sensitive data."""
-    from app.email_sender import EmailDeliveryError
-
     in_memory_user_store.create_user_profile("user-reset-uid", "resetuser", "reset@example.com")
     mock_user_rec = MagicMock()
     mock_user_rec.uid = "user-reset-uid"
     mock_user_rec.display_name = "resetuser"
     mock_firebase_auth.get_user_by_email.return_value = mock_user_rec
-    mock_firebase_auth.generate_password_reset_link.return_value = "https://kickoffxi.firebaseapp.com/__/auth/action?mode=resetPassword&oobCode=oob12345"
 
-    mock_send_email.side_effect = EmailDeliveryError("Email delivery timed out. Please try again.")
+    mock_send_email.side_effect = IdentityApiError('NETWORK_ERROR', 'Service temporarily unavailable.', status_code=503)
 
     res = client.post('/forgot-password', data={'email': 'reset@example.com'})
     assert res.status_code == 500
     assert b"Unable to send password reset email at this time" in res.data
-    # Ensure raw tokens or internal details are not exposed
-    assert b"oob12345" not in res.data
+
+
+@patch('smtplib.SMTP')
+@patch.object(IdentityClient, 'send_password_reset_email')
+def test_forgot_password_no_smtp_connection(mock_send_email, mock_smtp, client, in_memory_user_store, mock_firebase_auth):
+    """Verify that password reset flow uses Firebase REST and never calls smtplib.SMTP."""
+    in_memory_user_store.create_user_profile("user-reset-uid", "resetuser", "reset@example.com")
+    mock_user_rec = MagicMock()
+    mock_user_rec.uid = "user-reset-uid"
+    mock_user_rec.display_name = "resetuser"
+    mock_firebase_auth.get_user_by_email.return_value = mock_user_rec
+    mock_send_email.return_value = {'email': 'reset@example.com'}
+
+    res = client.post('/forgot-password', data={'email': 'reset@example.com'})
+    assert res.status_code == 200
+    assert b"If an account exists for this email" in res.data
+    mock_send_email.assert_called_once_with('reset@example.com')
+    mock_smtp.assert_not_called()
+
+
+@patch.object(IdentityClient, 'send_password_reset_email')
+def test_forgot_password_rate_limit_429(mock_send_email, client, in_memory_user_store, mock_firebase_auth):
+    """Verify that Firebase rate limiting (TOO_MANY_ATTEMPTS) returns HTTP 429 and user-friendly error."""
+    in_memory_user_store.create_user_profile("user-reset-uid", "resetuser", "reset@example.com")
+    mock_user_rec = MagicMock()
+    mock_user_rec.uid = "user-reset-uid"
+    mock_user_rec.display_name = "resetuser"
+    mock_firebase_auth.get_user_by_email.return_value = mock_user_rec
+
+    mock_send_email.side_effect = IdentityApiError('TOO_MANY_ATTEMPTS', 'Too many attempts, please try again later.', status_code=400)
+
+    res = client.post('/forgot-password', data={'email': 'reset@example.com'})
+    assert res.status_code == 429
+    assert b"Too many attempts. Please try again later." in res.data
+
+
+@patch.object(IdentityClient, 'send_password_reset_email')
+def test_forgot_password_missing_or_invalid_api_key_500(mock_send_email, client, in_memory_user_store, mock_firebase_auth):
+    """Verify that missing or invalid API key returns safe configuration error with HTTP 500."""
+    in_memory_user_store.create_user_profile("user-reset-uid", "resetuser", "reset@example.com")
+    mock_user_rec = MagicMock()
+    mock_user_rec.uid = "user-reset-uid"
+    mock_user_rec.display_name = "resetuser"
+    mock_firebase_auth.get_user_by_email.return_value = mock_user_rec
+
+    mock_send_email.side_effect = IdentityApiError('MISSING_API_KEY', 'Firebase Web API key is not configured.', status_code=500)
+
+    res = client.post('/forgot-password', data={'email': 'reset@example.com'})
+    assert res.status_code == 500
+    assert b"Authentication service configuration error" in res.data
+
+
+def test_identity_client_send_password_reset_email_unit():
+    """Unit test for IdentityClient.send_password_reset_email covering payload, URL, timeout, and errors."""
+    import requests
+
+    client = IdentityClient(api_key="fake-api-key", timeout=10)
+
+    # 1. Successful request
+    with patch('requests.post') as mock_post:
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {"email": "test@example.com"}
+        mock_post.return_value = mock_resp
+
+        result = client.send_password_reset_email("test@example.com")
+        assert result == {"email": "test@example.com"}
+
+        mock_post.assert_called_once()
+        args, kwargs = mock_post.call_args
+        assert "accounts:sendOobCode" in args[0]
+        assert "key=fake-api-key" in args[0]
+        assert kwargs['json'] == {
+            "requestType": "PASSWORD_RESET",
+            "email": "test@example.com",
+            "continueUrl": "https://kickoffxl.onrender.com/signin"
+        }
+        assert kwargs['json']['continueUrl'] == "https://kickoffxl.onrender.com/signin"
+        assert kwargs['timeout'] == 10
+
+    # 2. Network exception
+    with patch('requests.post', side_effect=requests.RequestException("Timeout")):
+        with pytest.raises(IdentityApiError) as exc_info:
+            client.send_password_reset_email("test@example.com")
+        assert exc_info.value.code == 'NETWORK_ERROR'
+        assert exc_info.value.status_code == 503
+
+    # 3. Firebase error codes mapping
+    error_mappings = [
+        ("EMAIL_NOT_FOUND", 'EMAIL_NOT_FOUND'),
+        ("TOO_MANY_ATTEMPTS_TRY_LATER", 'TOO_MANY_ATTEMPTS'),
+        ("OPERATION_NOT_ALLOWED", 'OPERATION_NOT_ALLOWED'),
+        ("INVALID_EMAIL", 'INVALID_EMAIL'),
+        ("API_KEY_INVALID", 'API_KEY_INVALID'),
+    ]
+    for raw_code, expected_code in error_mappings:
+        with patch('requests.post') as mock_post:
+            mock_resp = MagicMock()
+            mock_resp.status_code = 400
+            mock_resp.json.return_value = {"error": {"message": f"{raw_code} : Some details"}}
+            mock_post.return_value = mock_resp
+
+            with pytest.raises(IdentityApiError) as exc_info:
+                client.send_password_reset_email("test@example.com")
+            assert exc_info.value.code == expected_code
+            assert exc_info.value.status_code == 400
+
+    # 4. Missing API key check (when not emulated)
+    with patch.dict('os.environ', {}, clear=True):
+        no_key_client = IdentityClient(api_key="", timeout=10)
+        with pytest.raises(IdentityApiError) as exc_info:
+            no_key_client.send_password_reset_email("test@example.com")
+        assert exc_info.value.code == 'MISSING_API_KEY'
+        assert exc_info.value.status_code == 500
 
 
 def test_session_verification_cache_check_revoked_enforcement(app, mock_firebase_auth):

@@ -16,7 +16,6 @@ Routes:
 import re
 import time
 import logging
-from urllib.parse import urlparse, parse_qs
 
 from flask import (
     Blueprint, render_template, request, redirect,
@@ -35,7 +34,6 @@ from app.session_auth import (
     login_required, is_safe_url, get_current_user_from_request,
     create_firebase_session_cookie, set_auth_cookie, clear_auth_cookie
 )
-from app.email_sender import send_password_reset_email, EmailDeliveryError
 
 logger = logging.getLogger(__name__)
 
@@ -389,40 +387,39 @@ def forgot_password():
         logger.info(f"Password reset throttled for user {user_record.uid} ({remaining}s remaining)")
         return render_template('forgot_password.html', submitted=True, success_message=generic_confirmation)
 
-    # Generate Firebase ActionCodeSettings and link
+    # Trigger Firebase Native Email Delivery via Identity Toolkit REST
+    identity_client = IdentityClient()
     try:
-        base_url = current_app.config.get('APP_BASE_URL') or request.host_url.rstrip('/')
-        action_settings = auth.ActionCodeSettings(
-            url=f"{base_url}/signin",
-            handle_code_in_app=False
-        )
-        fb_link = auth_mod.generate_password_reset_link(email, action_settings)
-
-        # Extract oobCode from returned link
-        parsed = urlparse(fb_link)
-        query_params = parse_qs(parsed.query)
-        oob_code = query_params.get('oobCode', [None])[0]
-
-        if not oob_code:
-            logger.error("[ERROR] Failed to extract oobCode from generated reset link")
+        identity_client.send_password_reset_email(email)
+        logger.info(f"[OK] Firebase native password reset email requested for user {user_record.uid}")
+    except IdentityApiError as e:
+        logger.error(f"[ERROR] Firebase sendOobCode error [{e.code}]: {e.status_code}")
+        if e.code == 'EMAIL_NOT_FOUND':
             return render_template('forgot_password.html', submitted=True, success_message=generic_confirmation)
-
-        reset_url = f"{base_url}/reset-password?oobCode={oob_code}"
-        username = user_record.display_name or 'User'
-
-        # Send email via Gmail SMTP
-        send_password_reset_email(email, reset_url, username)
-
-    except EmailDeliveryError as e:
-        logger.error(f"[ERROR] Password reset email delivery failed: {e}")
+        if e.code in ('MISSING_API_KEY', 'API_KEY_INVALID'):
+            return render_template(
+                'forgot_password.html',
+                errors={'general': 'Authentication service configuration error. Please contact support.'},
+                email=email
+            ), 500
+        if e.code == 'TOO_MANY_ATTEMPTS':
+            return render_template(
+                'forgot_password.html',
+                errors={'general': 'Too many attempts. Please try again later.'},
+                email=email
+            ), 429
         return render_template(
             'forgot_password.html',
             errors={'general': 'Unable to send password reset email at this time. Please try again later.'},
             email=email
         ), 500
     except Exception as e:
-        logger.error(f"[ERROR] Failed to generate/send reset link: {e.__class__.__name__}")
-        return render_template('forgot_password.html', submitted=True, success_message=generic_confirmation)
+        logger.error(f"[ERROR] Unexpected failure requesting reset email: {e.__class__.__name__}")
+        return render_template(
+            'forgot_password.html',
+            errors={'general': 'Unable to send password reset email at this time. Please try again later.'},
+            email=email
+        ), 500
 
     return render_template('forgot_password.html', submitted=True, success_message=generic_confirmation)
 
